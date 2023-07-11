@@ -1,6 +1,7 @@
 package tasks
 
 import (
+	"app/wsl"
 	"app/command"
 	"fmt"
 	"os"
@@ -66,12 +67,12 @@ func (c *UE4Context) runBuild(command string, target string, platform string, co
 	}
 	cmdargs := make([]string, 0)
 	cmdargs = append(cmdargs,
-		c.upath("C:/Windows/System32/cmd.exe"),
+		wsl.UnixPath("C:/Windows/System32/cmd.exe"),
 		"/c")
 	if os.IsNotExist(err) {
 		command := strings.Title(command)
 		cmdargs = append(cmdargs,
-			c.wpath(path.Join(c.uproject.EngineRoot, "Build", "BatchFiles", command+".bat")),
+			wsl.WinPath(path.Join(c.uproject.EngineRoot, "Build", "BatchFiles", command+".bat")),
 			target,
 			platform,
 			configuration)
@@ -85,9 +86,9 @@ func (c *UE4Context) runBuild(command string, target string, platform string, co
 			command = "build"
 		}
 		cmdargs = append(cmdargs,
-			c.wpath(path.Join(c.uproject.EngineRoot, "Build", "BatchFiles", "MSBuild.bat")),
+			wsl.WinPath(path.Join(c.uproject.EngineRoot, "Build", "BatchFiles", "MSBuild.bat")),
 			"/t:"+command,
-			c.wpath(csproj),
+			wsl.WinPath(csproj),
 			"/p:GenerateFullPaths=true",
 			"/p:DebugType=portable",
 			"/p:Configuration="+configuration,
@@ -119,13 +120,13 @@ func (c *UE4Context) Package(platform string, configuration string, args... stri
 	}
 	cmdargs := make([]string, 0)
 	cmdargs = append(cmdargs,
-		c.upath("C:/Windows/System32/cmd.exe"), "/c",
-		c.wpath(path.Join(c.uproject.EngineRoot, "Build", "BatchFiles", "RunUAT.bat")),
-		"-ScriptsForProject="+c.wpath(c.uproject.UProjectPath),
+		wsl.UnixPath("C:/Windows/System32/cmd.exe"), "/c",
+		wsl.WinPath(path.Join(c.uproject.EngineRoot, "Build", "BatchFiles", "RunUAT.bat")),
+		"-ScriptsForProject="+wsl.WinPath(c.uproject.UProjectPath),
 		"BuildCookRun",
 		"-nocompileeditor",
 		"-nop4",
-		"-project="+c.wpath(c.uproject.UProjectPath),
+		"-project="+wsl.WinPath(c.uproject.UProjectPath),
 		// '-SkipCookingEditorContent',
 		"-clientconfig="+configuration,
 		"-prereqs", "-targetplatform="+platform, "-utf8output",
@@ -140,7 +141,7 @@ func (c *UE4Context) Package(platform string, configuration string, args... stri
 		// "-nodebuginfo"
 		"-compressed",
 		"-archive",
-		"-archivedirectory="+c.wpath(archiveDir),
+		"-archivedirectory="+wsl.WinPath(archiveDir),
 		"-mapsonly")
 	cmdargs = append(cmdargs, args...)
 	cmdargs = append(cmdargs,

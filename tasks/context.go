@@ -1,154 +1,81 @@
 package tasks
 
 import (
+	"app/uproject"
 	"os"
-	"strings"
+	"os/exec"
+	"io"
 	"context"
-	"errors"
-	"path"
-	"path/filepath"
-	"encoding/json"
-)
-
-const (
-	UNREAL_VERSION_SELECTOR = "C:/Program Files (x86)/Epic Games/Launcher/Engine/Binaries/Win64/UnrealVersionSelector.exe"
-	UNREAL_ENGINE_INSTALL_ROOT = "C:/Program Files/Epic Games"
+	"strings"
 )
 
 type (
 	UE4Context struct {
 		ctx context.Context
-		uproject *UProject
-		isWSL bool
-	}
-	UProject struct {
-		FileVersion int
-		EngineAssociation string
-		Modules []*Module
-		HasModules bool
-		UProjectPath string
-		Name string
-		ProjectRoot string
-		RootPath string
-		EngineRoot string
-	}
-	Module struct {
-		Name string
-		Type string
-		LoadingPhase string
-		AdditionalDependencies []string
+		uproject *uproject.UProject
 	}
 )
 
 func New() *UE4Context {
 	ctx := new(UE4Context)
 	ctx.ctx = context.Background()
-	ctx.isWSL = os.Getenv("WSL_DISTRO_NAME") != ""
 
-	uproject, err := findUproject()
+	uprj, err := uproject.GetUProject()
 	if err != nil {
 		panic(err)
 	}
-
-	uprj, err := newUproject(ctx, uproject)
-	if err != nil {
-		panic(err)
-	}
-
 	ctx.uproject = uprj
 
-	if err = os.Chdir(ctx.uproject.RootPath); err != nil {
+	if err = os.Chdir(uprj.RootPath); err != nil {
 		panic(err)
 	}
 
-	println("Found: "+uproject)
-	println("Set workspace: "+ctx.uproject.RootPath)
+	println("Found: "+uprj.UProjectPath)
+	println("Set workspace: "+uprj.RootPath)
 	return ctx
 }
 
-func newUproject(c *UE4Context, uprojectPath string) (*UProject, error) {
-	prj := new(UProject)
+func newExecCmd(command []string) (*exec.Cmd, error) {
+	println(">>> RUN: ")
+	println(strings.Join(command, " "))
+	println("<<<")
+	cmd := exec.Command(command[0], command[1:]...)
 
-	f, err := os.Open(uprojectPath)
+	stdout, err := cmd.StdoutPipe()
 	if err != nil {
 		return nil, err
 	}
+	go func() {
+		if _, err := io.Copy(os.Stdout, stdout); err != nil {
+			return
+		}
+	}()
 
-	var obj map[string]interface{}
-	err = json.NewDecoder(f).Decode(&obj)
+	stderr, err := cmd.StderrPipe()
 	if err != nil {
 		return nil, err
 	}
-	prj.FileVersion = int(obj["FileVersion"].(float64))
-	prj.EngineAssociation = obj["EngineAssociation"].(string)
-	prj.Modules = parseModules(obj["Modules"].([]interface{}))
-	prj.HasModules = len(prj.Modules) > 0
+	go func() {
+		if _, err := io.Copy(os.Stderr, stderr); err != nil {
+			return
+		}
+	}()
 
-	prj.UProjectPath = uprojectPath
-	prj.Name = path.Base(uprojectPath[:len(uprojectPath)-len(".uproject")])
-	prj.ProjectRoot = path.Dir(uprojectPath)
-	prj.RootPath = path.Dir(prj.ProjectRoot)
-
-	{
-		editorpathMatches, _ := filepath.Glob(path.Join(prj.RootPath, ".ue4-version"))
-		if len(editorpathMatches) == 0 {
-			editorpathMatches, _ = filepath.Glob(path.Join(prj.RootPath, "*", ".ue4-version"))
-		}
-		if len(editorpathMatches) > 0 {
-			prj.RootPath = path.Dir(editorpathMatches[0])
-			if b, err := os.ReadFile(editorpathMatches[0]); err != nil {
-				prj.EngineRoot = string(b)
-			}
-		} else {
-			enginePathMatches, _ := filepath.Glob(path.Join(prj.RootPath, "Engine", "Build", "Build.version"))
-			if len(enginePathMatches) == 0 {
-				enginePathMatches, _ = filepath.Glob(path.Join(prj.RootPath, "*", "Engine", "Build", "Build.version"))
-			}
-			prj.EngineRoot = path.Dir(path.Dir(enginePathMatches[0]))
-		}
-		if _, err := os.Stat(prj.EngineRoot); os.IsNotExist(err) {
-			prj.RootPath = prj.ProjectRoot
-			prj.EngineRoot = path.Join(c.upath(UNREAL_ENGINE_INSTALL_ROOT), "UE_"+prj.EngineAssociation, "Engine")
-		}
-	}
-	return prj, nil
+	return cmd, nil
 }
 
-func parseModules(src []interface{}) []*Module {
-	var mods []*Module
-	for _, v_ := range src {
-		v := v_.(map[string]interface{})
-		m := new(Module)
-		m.Name = v["Name"].(string)
-		m.Type = v["Type"].(string)
-		m.LoadingPhase = v["LoadingPhase"].(string)
-		mods = append(mods, m)
+func (c *UE4Context) run(command []string) error {
+	cmd, err := newExecCmd(command)
+	if err != nil {
+		return err
 	}
-	return mods
+	return cmd.Run()
 }
 
-func findUproject() (string, error) {
-	currentDir := os.Getenv("TARGET_DIR")
-	if currentDir == "" {
-		var err error
-		currentDir, err = os.Getwd()
-		if err != nil {
-			return "", err
-		}
+func (c *UE4Context) start(command []string) error {
+	cmd, err := newExecCmd(command)
+	if err != nil {
+		return err
 	}
-
-	for currentDir!= "/" {
-		matches, _ := filepath.Glob(path.Join(currentDir, "*.uproject"))
-		if len(matches) == 0 {
-			matches, _ = filepath.Glob(path.Join(currentDir, "*", "*.uproject"))
-		}
-		for _, v := range matches {
-			if !strings.HasSuffix(v, "EngineTest.uproject") {
-				return v, nil
-			}
-		}
-		currentDir = path.Dir(currentDir)
-	}
-
-	return "", errors.New("Not Found *.uproject")
+	return cmd.Start()
 }

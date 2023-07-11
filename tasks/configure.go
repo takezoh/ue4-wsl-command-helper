@@ -1,7 +1,9 @@
 package tasks
 
 import (
+	"app/wsl"
 	"app/command"
+	"app/uproject"
 	"os"
 	"path"
 	"github.com/akamensky/argparse"
@@ -31,14 +33,14 @@ func (c *UE4Context) ProjectFiles(args... string) error {
 	}
 	if os.IsNotExist(err) {
 		cmdargs = append(cmdargs,
-			c.upath(UNREAL_VERSION_SELECTOR),
+			wsl.UnixPath(uproject.UNREAL_VERSION_SELECTOR),
 			"/projectfiles")
 	} else {
 		cmdargs = append(cmdargs,
-			c.upath("C:/Windows/System32/cmd.exe"),
+			wsl.UnixPath("C:/Windows/System32/cmd.exe"),
 			"/c",
-			c.wpath(builder))
+			wsl.WinPath(builder))
 	}
-	cmdargs = append(cmdargs, c.wpath(c.uproject.UProjectPath), "-Game", "-Engine", "-makefile", "-VSCode")
+	cmdargs = append(cmdargs, wsl.WinPath(c.uproject.UProjectPath), "-Game", "-Engine", "-makefile", "-VSCode")
 	return c.run(cmdargs)
 }
