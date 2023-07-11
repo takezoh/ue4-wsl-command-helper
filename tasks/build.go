@@ -142,7 +142,7 @@ func (c *UE4Context) Package(platform string, configuration string, args... stri
 		"-archive",
 		"-archivedirectory="+c.wpath(archiveDir),
 		"-mapsonly")
-		//+' '+ (opts or ''))
+	cmdargs = append(cmdargs, args...)
 	cmdargs = append(cmdargs,
 		"-serverconfig="+configuration,
 		fmt.Sprintf(`-addcmdline=-statnamedevents -StatCmds='unit,fps' -SessionId=%v -SessionOwner='%v' -SessionName='%v' -messaging`,
