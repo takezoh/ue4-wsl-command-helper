@@ -13,7 +13,7 @@ type (
 
 func InitEditor(c *command.Context) {
 	command := c.Parser.NewCommand("editor", "Launch editor")
-	c.Add(command, &configureTarget{})
+	c.Add(command, &editorTarget{})
 }
 
 func (t *editorTarget) Execute(ctx *command.Context, cmd *argparse.Command) {
