@@ -45,14 +45,16 @@ func New() *UE4Context {
 	ctx.ctx = context.Background()
 	ctx.isWSL = os.Getenv("WSL_DISTRO_NAME") != ""
 
-	uproject, _ := findUproject()
-	uprj, err := newUproject(ctx, uproject)
-	if os.IsNotExist(err) {
-		panic("*.uproject is not found.")
-	}
+	uproject, err := findUproject()
 	if err != nil {
 		panic(err)
 	}
+
+	uprj, err := newUproject(ctx, uproject)
+	if err != nil {
+		panic(err)
+	}
+
 	ctx.uproject = uprj
 
 	if err = os.Chdir(ctx.uproject.RootPath); err != nil {
