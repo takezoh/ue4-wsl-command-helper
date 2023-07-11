@@ -98,12 +98,12 @@ func (c *UE4Context) runBuild(command string, target string, platform string, co
 }
 
 func (c *UE4Context) Build(command string, target string, platform string, configuration string, args... string) error {
-	// c.runBuild("DotNETCommon/DotNETUtilities", command, "Development", platform)
-	// c.runBuild("UnrealHeaderTool", command, "Development", "Win64")
-	// c.runBuild("UnrealBuildTool", command, "Development", "Win64")
-	c.runBuild("AutomationTool", command, "Development", "Win64")
-	c.runBuild("UnrealLightmass", command, "Development", "Win64")
-	c.runBuild("ShaderCompileWorker", command, "Development", "Win64")
+	// c.runBuild(command, "DotNETCommon/DotNETUtilities", platform, "Development")
+	// c.runBuild(command, "UnrealHeaderTool", "Win64", "Development")
+	// c.runBuild(command, "UnrealBuildTool", "Win64", "Development")
+	c.runBuild(command, "AutomationTool", "Win64", "Development")
+	c.runBuild(command, "UnrealLightmass", "Win64", "Development")
+	c.runBuild(command, "ShaderCompileWorker", "Win64", "Development")
 	return c.runBuild(command, target, platform, configuration, args...)
 }
 
