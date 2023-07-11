@@ -66,9 +66,7 @@ func (c *UE4Context) runBuild(command string, target string, platform string, co
 		return err
 	}
 	cmdargs := make([]string, 0)
-	cmdargs = append(cmdargs,
-		wsl.UnixPath("C:/Windows/System32/cmd.exe"),
-		"/c")
+	cmdargs = append(cmdargs, "C:/Windows/System32/cmd.exe", "/c")
 	if os.IsNotExist(err) {
 		command := strings.Title(command)
 		cmdargs = append(cmdargs,
@@ -120,7 +118,7 @@ func (c *UE4Context) Package(platform string, configuration string, args... stri
 	}
 	cmdargs := make([]string, 0)
 	cmdargs = append(cmdargs,
-		wsl.UnixPath("C:/Windows/System32/cmd.exe"), "/c",
+		"C:/Windows/System32/cmd.exe", "/c",
 		wsl.WinPath(path.Join(c.uproject.EngineRoot, "Build", "BatchFiles", "RunUAT.bat")),
 		"-ScriptsForProject="+wsl.WinPath(c.uproject.UProjectPath),
 		"BuildCookRun",

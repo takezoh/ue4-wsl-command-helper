@@ -33,12 +33,11 @@ func (c *UE4Context) ProjectFiles(args... string) error {
 	}
 	if os.IsNotExist(err) {
 		cmdargs = append(cmdargs,
-			wsl.UnixPath(uproject.UNREAL_VERSION_SELECTOR),
+			uproject.UNREAL_VERSION_SELECTOR,
 			"/projectfiles")
 	} else {
 		cmdargs = append(cmdargs,
-			wsl.UnixPath("C:/Windows/System32/cmd.exe"),
-			"/c",
+			"C:/Windows/System32/cmd.exe", "/c",
 			wsl.WinPath(builder))
 	}
 	cmdargs = append(cmdargs, wsl.WinPath(c.uproject.UProjectPath), "-Game", "-Engine", "-makefile", "-VSCode")

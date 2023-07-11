@@ -1,6 +1,7 @@
 package tasks
 
 import (
+	"app/wsl"
 	"app/uproject"
 	"os"
 	"os/exec"
@@ -36,10 +37,10 @@ func New() *UE4Context {
 }
 
 func newExecCmd(command []string) (*exec.Cmd, error) {
-	println(">>> RUN: ")
-	println(strings.Join(command, " "))
+	println(">>>")
+	println(">>> RUN: "+strings.Join(command, " "))
 	println("<<<")
-	cmd := exec.Command(command[0], command[1:]...)
+	cmd := exec.Command(wsl.UnixPath(command[0]), command[1:]...)
 
 	stdout, err := cmd.StdoutPipe()
 	if err != nil {

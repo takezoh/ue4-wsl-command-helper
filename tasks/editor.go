@@ -27,7 +27,7 @@ func (c *UE4Context) Editor(args... string) error {
 
 	cmdargs := make([]string, 0)
 	cmdargs = append(cmdargs,
-		editorBin,
+		wsl.WinPath(editorBin),
 		wsl.WinPath(c.uproject.UProjectPath),
 		"-skipcompile",
 		"-fullcrashdump",
