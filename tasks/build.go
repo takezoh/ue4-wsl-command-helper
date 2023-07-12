@@ -1,23 +1,23 @@
 package tasks
 
 import (
-	"app/wsl"
 	"app/command"
+	"app/wsl"
 	"fmt"
+	"github.com/akamensky/argparse"
+	"github.com/google/uuid"
 	"os"
 	"path/filepath"
 	"strings"
 	"time"
-	"github.com/google/uuid"
-	"github.com/akamensky/argparse"
 )
 
 type (
 	buildTarget struct {
-		platform *string
+		platform      *string
 		configuration *string
-		target *string
-		isServer *bool
+		target        *string
+		isServer      *bool
 	}
 )
 
@@ -41,8 +41,10 @@ func newBuildCmd(command *argparse.Command) (*argparse.Command, *buildTarget) {
 
 func (t *buildTarget) Execute(ctx *command.Context, cmd *argparse.Command) {
 	switch cmd.GetName() {
-	case "build", "clean", "rebuild": Context.Build(cmd.GetName(), *t.target, *t.platform, *t.configuration, *ctx.Opts...)
-	case "package": Context.Package(*t.target, *t.platform, *t.configuration, *t.isServer, *ctx.Opts...)
+	case "build", "clean", "rebuild":
+		Context.Build(cmd.GetName(), *t.target, *t.platform, *t.configuration, *ctx.Opts...)
+	case "package":
+		Context.Package(*t.target, *t.platform, *t.configuration, *t.isServer, *ctx.Opts...)
 	}
 }
 
@@ -55,7 +57,7 @@ func has(str string, arr []string) bool {
 	return false
 }
 
-func (c *UE4Context) runBuild(command string, target string, platform string, configuration string, args... string) error {
+func (c *UE4Context) runBuild(command string, target string, platform string, configuration string, args ...string) error {
 	csproj := filepath.Join(c.uproject.EngineRoot, "Source", "Programs", target, filepath.Base(target)+".csproj")
 	_, err := os.Stat(csproj)
 	if err != nil && !os.IsNotExist(err) {
@@ -92,7 +94,7 @@ func (c *UE4Context) runBuild(command string, target string, platform string, co
 	return c.run(cmdargs)
 }
 
-func (c *UE4Context) Build(command string, target string, platform string, configuration string, args... string) error {
+func (c *UE4Context) Build(command string, target string, platform string, configuration string, args ...string) error {
 	// c.runBuild(command, "DotNETCommon/DotNETUtilities", platform, "Development")
 	// c.runBuild(command, "UnrealHeaderTool", "Win64", "Development")
 	// c.runBuild(command, "UnrealBuildTool", "Win64", "Development")
@@ -102,8 +104,8 @@ func (c *UE4Context) Build(command string, target string, platform string, confi
 	return c.runBuild(command, target, platform, configuration, args...)
 }
 
-func (c *UE4Context) Package(target string, platform string, configuration string, isServer bool, args... string) error {
-	archiveName := platform +"_"+ configuration +"_"+ time.Now().Format("20060102_150405.00000")
+func (c *UE4Context) Package(target string, platform string, configuration string, isServer bool, args ...string) error {
+	archiveName := platform + "_" + configuration + "_" + time.Now().Format("20060102_150405.00000")
 	archiveDir := filepath.Join(c.uproject.ProjectRoot, "Saved", "Packages", archiveName)
 	username := os.Getenv("USERNAME")
 	if username == "" {

@@ -1,8 +1,8 @@
 package main
 
 import (
-	"app/tasks"
 	"app/command"
+	"app/tasks"
 	"os"
 )
 

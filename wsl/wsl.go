@@ -2,12 +2,11 @@ package wsl
 
 import (
 	"os"
-	"strings"
 	"os/exec"
+	"strings"
 )
 
 var isWSL = os.Getenv("WSL_DISTRO_NAME") != ""
-
 
 func Wslpath(path string, opt string) string {
 	if !isWSL {

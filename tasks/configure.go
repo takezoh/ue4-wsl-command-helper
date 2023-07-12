@@ -1,12 +1,12 @@
 package tasks
 
 import (
-	"app/wsl"
 	"app/command"
 	"app/uproject"
+	"app/wsl"
+	"github.com/akamensky/argparse"
 	"os"
 	"path/filepath"
-	"github.com/akamensky/argparse"
 )
 
 type (
@@ -23,7 +23,7 @@ func (t *configureTarget) Execute(ctx *command.Context, cmd *argparse.Command) {
 	Context.ProjectFiles(*ctx.Opts...)
 }
 
-func (c *UE4Context) ProjectFiles(args... string) error {
+func (c *UE4Context) ProjectFiles(args ...string) error {
 	builder := filepath.Join(c.uproject.EngineRoot, "Build", "BatchFiles", "GenerateProjectFiles.bat")
 	cmdargs := make([]string, 0)
 	_, err := os.Stat(builder)

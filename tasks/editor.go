@@ -1,10 +1,10 @@
 package tasks
 
 import (
-	"app/wsl"
-	"path/filepath"
 	"app/command"
+	"app/wsl"
 	"github.com/akamensky/argparse"
+	"path/filepath"
 )
 
 type (
@@ -21,7 +21,7 @@ func (t *editorTarget) Execute(ctx *command.Context, cmd *argparse.Command) {
 	Context.Editor(*ctx.Opts...)
 }
 
-func (c *UE4Context) Editor(args... string) error {
+func (c *UE4Context) Editor(args ...string) error {
 	editorBin := filepath.Join(c.uproject.EngineRoot, "Binaries", "Win64", "UE4Editor.exe")
 
 	cmdargs := make([]string, 0)

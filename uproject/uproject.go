@@ -2,46 +2,46 @@ package uproject
 
 import (
 	"app/wsl"
-	"os"
-	"strings"
-	"errors"
-	"path/filepath"
 	"encoding/json"
+	"errors"
+	"os"
+	"path/filepath"
+	"strings"
 )
 
 var (
 	CONFIGURATION_LIST = []string{"Development", "Test", "Shipping"}
-	PLATFORM_LIST = []string{"Win64", "Android", "LinuxServer", "PS4", "PS5"}
+	PLATFORM_LIST      = []string{"Win64", "Android", "LinuxServer", "PS4", "PS5"}
 )
 
 const (
-	UNREAL_VERSION_SELECTOR = "C:/Program Files (x86)/Epic Games/Launcher/Engine/Binaries/Win64/UnrealVersionSelector.exe"
+	UNREAL_VERSION_SELECTOR    = "C:/Program Files (x86)/Epic Games/Launcher/Engine/Binaries/Win64/UnrealVersionSelector.exe"
 	UNREAL_ENGINE_INSTALL_ROOT = "C:/Program Files/Epic Games"
 )
 
 type (
 	UProject struct {
-		Name string
-		ProjectRoot string
-		RootPath string
-		EngineRoot string
+		Name         string
+		ProjectRoot  string
+		RootPath     string
+		EngineRoot   string
 		UProjectPath string
-		UE4CmdExe string
+		UE4CmdExe    string
 
-		Targets []string
+		Targets        []string
 		Configurations []string
-		Platforms []string
+		Platforms      []string
 
-		Modules []*Module
+		Modules    []*Module
 		HasModules bool
 
-		FileVersion int
+		FileVersion       int
 		EngineAssociation string
 	}
 	Module struct {
-		Name string
-		Type string
-		LoadingPhase string
+		Name                   string
+		Type                   string
+		LoadingPhase           string
 		AdditionalDependencies []string
 	}
 )

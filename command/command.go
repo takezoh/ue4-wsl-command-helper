@@ -1,20 +1,20 @@
 package command
 
 import (
-	"github.com/akamensky/argparse"
 	"fmt"
+	"github.com/akamensky/argparse"
 )
 
 type (
 	Context struct {
 		Parser *argparse.Parser
-		Opts *[]string
+		Opts   *[]string
 
 		targets []targetWrapper
 	}
 
 	targetWrapper struct {
-		cmd *argparse.Command
+		cmd    *argparse.Command
 		target Target
 	}
 
@@ -24,7 +24,7 @@ type (
 )
 
 func (c *Context) Add(cmd *argparse.Command, target Target) {
-	c.targets = append(c.targets, targetWrapper{cmd:cmd, target:target})
+	c.targets = append(c.targets, targetWrapper{cmd: cmd, target: target})
 }
 
 func (c *Context) Parse(args []string) error {

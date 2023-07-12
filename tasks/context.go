@@ -1,12 +1,12 @@
 package tasks
 
 import (
-	"app/wsl"
 	"app/uproject"
+	"app/wsl"
+	"context"
+	"io"
 	"os"
 	"os/exec"
-	"io"
-	"context"
 	"strings"
 )
 
@@ -14,7 +14,7 @@ var Context *UE4Context
 
 type (
 	UE4Context struct {
-		ctx context.Context
+		ctx      context.Context
 		uproject *uproject.UProject
 	}
 )
@@ -33,13 +33,13 @@ func init() {
 		panic(err)
 	}
 
-	println("Found: "+uprj.UProjectPath)
-	println("Set workspace: "+uprj.RootPath)
+	println("Found: " + uprj.UProjectPath)
+	println("Set workspace: " + uprj.RootPath)
 }
 
 func newExecCmd(command []string) (*exec.Cmd, error) {
 	println(">>>")
-	println("RUN: "+strings.Join(command, " "))
+	println("RUN: " + strings.Join(command, " "))
 	println("<<<")
 	cmd := exec.Command(wsl.UnixPath(command[0]), command[1:]...)
 
