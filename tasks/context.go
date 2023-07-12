@@ -38,7 +38,7 @@ func New() *UE4Context {
 
 func newExecCmd(command []string) (*exec.Cmd, error) {
 	println(">>>")
-	println(">>> RUN: "+strings.Join(command, " "))
+	println("RUN: "+strings.Join(command, " "))
 	println("<<<")
 	cmd := exec.Command(wsl.UnixPath(command[0]), command[1:]...)
 

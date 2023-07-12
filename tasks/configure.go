@@ -5,7 +5,7 @@ import (
 	"app/command"
 	"app/uproject"
 	"os"
-	"path"
+	"path/filepath"
 	"github.com/akamensky/argparse"
 )
 
@@ -25,7 +25,7 @@ func (t *configureTarget) Execute(ctx *command.Context, cmd *argparse.Command) {
 }
 
 func (c *UE4Context) ProjectFiles(args... string) error {
-	builder := path.Join(c.uproject.EngineRoot, "Build", "BatchFiles", "GenerateProjectFiles.bat")
+	builder := filepath.Join(c.uproject.EngineRoot, "Build", "BatchFiles", "GenerateProjectFiles.bat")
 	cmdargs := make([]string, 0)
 	_, err := os.Stat(builder)
 	if err != nil && !os.IsNotExist(err) {
@@ -37,7 +37,7 @@ func (c *UE4Context) ProjectFiles(args... string) error {
 			"/projectfiles")
 	} else {
 		cmdargs = append(cmdargs,
-			"C:/Windows/System32/cmd.exe", "/c",
+			`C:\Windows\System32\cmd.exe`, "/c",
 			wsl.WinPath(builder))
 	}
 	cmdargs = append(cmdargs, wsl.WinPath(c.uproject.UProjectPath), "-Game", "-Engine", "-makefile", "-VSCode")

@@ -30,5 +30,5 @@ func UnixPath(upath string) string {
 }
 
 func WinPath(upath string) string {
-	return Wslpath(upath, "-am")
+	return Wslpath(upath, "-aw")
 }

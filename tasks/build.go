@@ -5,7 +5,7 @@ import (
 	"app/command"
 	"fmt"
 	"os"
-	"path"
+	"path/filepath"
 	"strings"
 	"time"
 	"github.com/google/uuid"
@@ -60,17 +60,17 @@ func has(str string, arr []string) bool {
 }
 
 func (c *UE4Context) runBuild(command string, target string, platform string, configuration string, args... string) error {
-	csproj := path.Join(c.uproject.EngineRoot, "Source", "Programs", target, path.Base(target)+".csproj")
+	csproj := filepath.Join(c.uproject.EngineRoot, "Source", "Programs", target, filepath.Base(target)+".csproj")
 	_, err := os.Stat(csproj)
 	if err != nil && !os.IsNotExist(err) {
 		return err
 	}
 	cmdargs := make([]string, 0)
-	cmdargs = append(cmdargs, "C:/Windows/System32/cmd.exe", "/c")
+	cmdargs = append(cmdargs, `C:\Windows\System32\cmd.exe`, "/c")
 	if os.IsNotExist(err) {
 		command := strings.Title(command)
 		cmdargs = append(cmdargs,
-			wsl.WinPath(path.Join(c.uproject.EngineRoot, "Build", "BatchFiles", command+".bat")),
+			wsl.WinPath(filepath.Join(c.uproject.EngineRoot, "Build", "BatchFiles", command+".bat")),
 			target,
 			platform,
 			configuration)
@@ -84,7 +84,7 @@ func (c *UE4Context) runBuild(command string, target string, platform string, co
 			command = "build"
 		}
 		cmdargs = append(cmdargs,
-			wsl.WinPath(path.Join(c.uproject.EngineRoot, "Build", "BatchFiles", "MSBuild.bat")),
+			wsl.WinPath(filepath.Join(c.uproject.EngineRoot, "Build", "BatchFiles", "MSBuild.bat")),
 			"/t:"+command,
 			wsl.WinPath(csproj),
 			"/p:GenerateFullPaths=true",
@@ -108,7 +108,7 @@ func (c *UE4Context) Build(command string, target string, platform string, confi
 
 func (c *UE4Context) Package(platform string, configuration string, args... string) error {
 	archiveName := platform +"_"+ configuration +"_"+ time.Now().Format("20060102_150405.00000")
-	archiveDir := path.Join(c.uproject.ProjectRoot, "Saved", "Packages", archiveName)
+	archiveDir := filepath.Join(c.uproject.ProjectRoot, "Saved", "Packages", archiveName)
 	username := os.Getenv("USERNAME")
 	if username == "" {
 		username = os.Getenv("LOGNAME")
@@ -118,8 +118,8 @@ func (c *UE4Context) Package(platform string, configuration string, args... stri
 	}
 	cmdargs := make([]string, 0)
 	cmdargs = append(cmdargs,
-		"C:/Windows/System32/cmd.exe", "/c",
-		wsl.WinPath(path.Join(c.uproject.EngineRoot, "Build", "BatchFiles", "RunUAT.bat")),
+		`C:\Windows\System32\cmd.exe`, "/c",
+		wsl.WinPath(filepath.Join(c.uproject.EngineRoot, "Build", "BatchFiles", "RunUAT.bat")),
 		"-ScriptsForProject="+wsl.WinPath(c.uproject.UProjectPath),
 		"BuildCookRun",
 		"-nocompileeditor",

@@ -5,7 +5,6 @@ import (
 	"os"
 	"strings"
 	"errors"
-	"path"
 	"path/filepath"
 	"encoding/json"
 )
@@ -58,17 +57,17 @@ func uprojectPath() (string, error) {
 		}
 	}
 
-	for currentDir!= "/" {
-		matches, _ := filepath.Glob(path.Join(currentDir, "*.uproject"))
+	for currentDir != string(os.PathSeparator) {
+		matches, _ := filepath.Glob(filepath.Join(currentDir, "*.uproject"))
 		if len(matches) == 0 {
-			matches, _ = filepath.Glob(path.Join(currentDir, "*", "*.uproject"))
+			matches, _ = filepath.Glob(filepath.Join(currentDir, "*", "*.uproject"))
 		}
 		for _, v := range matches {
 			if !strings.HasSuffix(v, "EngineTest.uproject") {
 				return v, nil
 			}
 		}
-		currentDir = path.Dir(currentDir)
+		currentDir = filepath.Dir(currentDir)
 	}
 
 	return "", errors.New("Not Found *.uproject")
@@ -93,30 +92,30 @@ func uprojectObj(uprojectPath string) (*UProject, error) {
 	prj.HasModules = len(prj.Modules) > 0
 
 	prj.UProjectPath = uprojectPath
-	prj.Name = path.Base(uprojectPath[:len(uprojectPath)-len(".uproject")])
-	prj.ProjectRoot = path.Dir(uprojectPath)
-	prj.RootPath = path.Dir(prj.ProjectRoot)
+	prj.Name = filepath.Base(uprojectPath[:len(uprojectPath)-len(".uproject")])
+	prj.ProjectRoot = filepath.Dir(uprojectPath)
+	prj.RootPath = filepath.Dir(prj.ProjectRoot)
 
 	{
-		editorpathMatches, _ := filepath.Glob(path.Join(prj.RootPath, ".ue4-version"))
+		editorpathMatches, _ := filepath.Glob(filepath.Join(prj.RootPath, ".ue4-version"))
 		if len(editorpathMatches) == 0 {
-			editorpathMatches, _ = filepath.Glob(path.Join(prj.RootPath, "*", ".ue4-version"))
+			editorpathMatches, _ = filepath.Glob(filepath.Join(prj.RootPath, "*", ".ue4-version"))
 		}
 		if len(editorpathMatches) > 0 {
-			prj.RootPath = path.Dir(editorpathMatches[0])
+			prj.RootPath = filepath.Dir(editorpathMatches[0])
 			if b, err := os.ReadFile(editorpathMatches[0]); err != nil {
 				prj.EngineRoot = string(b)
 			}
 		} else {
-			enginePathMatches, _ := filepath.Glob(path.Join(prj.RootPath, "Engine", "Build", "Build.version"))
+			enginePathMatches, _ := filepath.Glob(filepath.Join(prj.RootPath, "Engine", "Build", "Build.version"))
 			if len(enginePathMatches) == 0 {
-				enginePathMatches, _ = filepath.Glob(path.Join(prj.RootPath, "*", "Engine", "Build", "Build.version"))
+				enginePathMatches, _ = filepath.Glob(filepath.Join(prj.RootPath, "*", "Engine", "Build", "Build.version"))
 			}
-			prj.EngineRoot = path.Dir(path.Dir(enginePathMatches[0]))
+			prj.EngineRoot = filepath.Dir(filepath.Dir(enginePathMatches[0]))
 		}
 		if _, err := os.Stat(prj.EngineRoot); os.IsNotExist(err) {
 			prj.RootPath = prj.ProjectRoot
-			prj.EngineRoot = path.Join(wsl.UnixPath(UNREAL_ENGINE_INSTALL_ROOT), "UE_"+prj.EngineAssociation, "Engine")
+			prj.EngineRoot = filepath.Join(wsl.UnixPath(UNREAL_ENGINE_INSTALL_ROOT), "UE_"+prj.EngineAssociation, "Engine")
 		}
 	}
 	return prj, nil
