@@ -29,24 +29,23 @@ func InitBuilds(c *command.Context) {
 
 func newBuildCmd(command *argparse.Command) (*argparse.Command, *buildTarget) {
 	t := new(buildTarget)
-	t.platform = command.String("p", "platform", &argparse.Options{Required: true, Help: "Target platform"})
-	t.configuration = command.String("c", "configuration", &argparse.Options{Required: true, Help: "Target configuration"})
-	t.target = command.String("t", "target", &argparse.Options{Required: true, Help: "Build target"})
+	t.target = command.Selector("t", "target", Context.uproject.Targets, &argparse.Options{Required: true, Help: "Build target"})
+	t.platform = command.Selector("p", "platform", Context.uproject.Platforms, &argparse.Options{Required: true, Help: "Target platform"})
+	t.configuration = command.Selector("c", "configuration", Context.uproject.Configurations, &argparse.Options{Required: true, Help: "Target configuration"})
 	return command, t
 }
 
 func newPackageCmd(command *argparse.Command) (*argparse.Command, *buildTarget) {
 	t := new(buildTarget)
-	t.platform = command.String("p", "platform", &argparse.Options{Required: true, Help: "Target platform"})
-	t.configuration = command.String("c", "configuration", &argparse.Options{Required: true, Help: "Target configuration"})
+	t.platform = command.Selector("p", "platform", Context.uproject.Platforms, &argparse.Options{Required: true, Help: "Target platform"})
+	t.configuration = command.Selector("c", "configuration", Context.uproject.Configurations, &argparse.Options{Required: true, Help: "Target configuration"})
 	return command, t
 }
 
 func (t *buildTarget) Execute(ctx *command.Context, cmd *argparse.Command) {
-	task := New()
 	switch cmd.GetName() {
-	case "build", "clean", "rebuild": task.Build(cmd.GetName(), *t.target, *t.platform, *t.configuration, *ctx.Opts...)
-	case "package": task.Package(*t.platform, *t.configuration, *ctx.Opts...)
+	case "build", "clean", "rebuild": Context.Build(cmd.GetName(), *t.target, *t.platform, *t.configuration, *ctx.Opts...)
+	case "package": Context.Package(*t.platform, *t.configuration, *ctx.Opts...)
 	}
 }
 

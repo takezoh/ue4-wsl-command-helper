@@ -20,8 +20,7 @@ func InitConfigure(c *command.Context) {
 }
 
 func (t *configureTarget) Execute(ctx *command.Context, cmd *argparse.Command) {
-	task := New()
-	task.ProjectFiles(*ctx.Opts...)
+	Context.ProjectFiles(*ctx.Opts...)
 }
 
 func (c *UE4Context) ProjectFiles(args... string) error {

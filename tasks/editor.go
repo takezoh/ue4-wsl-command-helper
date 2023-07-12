@@ -18,8 +18,7 @@ func InitEditor(c *command.Context) {
 }
 
 func (t *editorTarget) Execute(ctx *command.Context, cmd *argparse.Command) {
-	task := New()
-	task.Editor(*ctx.Opts...)
+	Context.Editor(*ctx.Opts...)
 }
 
 func (c *UE4Context) Editor(args... string) error {

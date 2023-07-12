@@ -9,6 +9,11 @@ import (
 	"encoding/json"
 )
 
+var (
+	CONFIGURATION_LIST = []string{"Development", "Test", "Shipping"}
+	PLATFORM_LIST = []string{"Win64", "Android", "LinuxServer", "PS4", "PS5"}
+)
+
 const (
 	UNREAL_VERSION_SELECTOR = "C:/Program Files (x86)/Epic Games/Launcher/Engine/Binaries/Win64/UnrealVersionSelector.exe"
 	UNREAL_ENGINE_INSTALL_ROOT = "C:/Program Files/Epic Games"
@@ -16,15 +21,21 @@ const (
 
 type (
 	UProject struct {
-		FileVersion int
-		EngineAssociation string
-		Modules []*Module
-		HasModules bool
-		UProjectPath string
 		Name string
+		UProjectPath string
 		ProjectRoot string
 		RootPath string
 		EngineRoot string
+
+		Targets []string
+		Configurations []string
+		Platforms []string
+
+		Modules []*Module
+		HasModules bool
+
+		FileVersion int
+		EngineAssociation string
 	}
 	Module struct {
 		Name string
@@ -118,6 +129,10 @@ func uprojectObj(uprojectPath string) (*UProject, error) {
 			prj.EngineRoot = filepath.Join(wsl.UnixPath(UNREAL_ENGINE_INSTALL_ROOT), "UE_"+prj.EngineAssociation, "Engine")
 		}
 	}
+
+	prj.Targets = targets(prj.ProjectRoot)
+	prj.Configurations = CONFIGURATION_LIST
+	prj.Platforms = PLATFORM_LIST
 	return prj, nil
 }
 
@@ -132,4 +147,14 @@ func parseModules(src []interface{}) []*Module {
 		mods = append(mods, m)
 	}
 	return mods
+}
+
+func targets(projectRoot string) []string {
+	matches, _ := filepath.Glob(filepath.Join(projectRoot, "Source", "*.Target.cs"))
+	targets := []string{}
+	for _, v := range matches {
+		t := filepath.Base(v[:len(v)-len(".Target.cs")])
+		targets = append(targets, t)
+	}
+	return targets
 }

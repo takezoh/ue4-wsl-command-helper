@@ -10,6 +10,8 @@ import (
 	"strings"
 )
 
+var Context *UE4Context
+
 type (
 	UE4Context struct {
 		ctx context.Context
@@ -17,15 +19,15 @@ type (
 	}
 )
 
-func New() *UE4Context {
-	ctx := new(UE4Context)
-	ctx.ctx = context.Background()
+func init() {
+	Context = new(UE4Context)
+	Context.ctx = context.Background()
 
 	uprj, err := uproject.GetUProject()
 	if err != nil {
 		panic(err)
 	}
-	ctx.uproject = uprj
+	Context.uproject = uprj
 
 	if err = os.Chdir(uprj.RootPath); err != nil {
 		panic(err)
@@ -33,7 +35,6 @@ func New() *UE4Context {
 
 	println("Found: "+uprj.UProjectPath)
 	println("Set workspace: "+uprj.RootPath)
-	return ctx
 }
 
 func newExecCmd(command []string) (*exec.Cmd, error) {
