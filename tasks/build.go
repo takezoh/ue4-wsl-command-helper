@@ -17,6 +17,7 @@ type (
 		platform *string
 		configuration *string
 		target *string
+		isServer *bool
 	}
 )
 
@@ -32,13 +33,16 @@ func newBuildCmd(command *argparse.Command) (*argparse.Command, *buildTarget) {
 	t.target = command.Selector("t", "target", Context.uproject.Targets, &argparse.Options{Required: true, Help: "Build target"})
 	t.platform = command.Selector("p", "platform", Context.uproject.Platforms, &argparse.Options{Required: true, Help: "Target platform"})
 	t.configuration = command.Selector("c", "configuration", Context.uproject.Configurations, &argparse.Options{Required: true, Help: "Target configuration"})
+	if command.GetName() == "package" {
+		t.isServer = command.Flag("", "server", &argparse.Options{Required: false, Help: "Build to be server role"})
+	}
 	return command, t
 }
 
 func (t *buildTarget) Execute(ctx *command.Context, cmd *argparse.Command) {
 	switch cmd.GetName() {
 	case "build", "clean", "rebuild": Context.Build(cmd.GetName(), *t.target, *t.platform, *t.configuration, *ctx.Opts...)
-	case "package": Context.Package(*t.target, *t.platform, *t.configuration, *ctx.Opts...)
+	case "package": Context.Package(*t.target, *t.platform, *t.configuration, *t.isServer, *ctx.Opts...)
 	}
 }
 
@@ -98,7 +102,7 @@ func (c *UE4Context) Build(command string, target string, platform string, confi
 	return c.runBuild(command, target, platform, configuration, args...)
 }
 
-func (c *UE4Context) Package(target string, platform string, configuration string, args... string) error {
+func (c *UE4Context) Package(target string, platform string, configuration string, isServer bool, args... string) error {
 	archiveName := platform +"_"+ configuration +"_"+ time.Now().Format("20060102_150405.00000")
 	archiveDir := filepath.Join(c.uproject.ProjectRoot, "Saved", "Packages", archiveName)
 	username := os.Getenv("USERNAME")
@@ -137,6 +141,9 @@ func (c *UE4Context) Package(target string, platform string, configuration strin
 		"-compressed",
 		"-archive", "-archivedirectory="+wsl.WinPath(archiveDir),
 		"-mapsonly")
+	if isServer {
+		cmdargs = append(cmdargs, "-server")
+	}
 	cmdargs = append(cmdargs, args...)
 	cmdargs = append(cmdargs,
 		fmt.Sprintf(`-addcmdline=-statnamedevents -StatCmds='unit,fps' -SessionId=%v -SessionOwner='%v' -SessionName='%v' -messaging`,
