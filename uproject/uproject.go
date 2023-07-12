@@ -22,10 +22,11 @@ const (
 type (
 	UProject struct {
 		Name string
-		UProjectPath string
 		ProjectRoot string
 		RootPath string
 		EngineRoot string
+		UProjectPath string
+		UE4CmdExe string
 
 		Targets []string
 		Configurations []string
@@ -106,7 +107,6 @@ func uprojectObj(uprojectPath string) (*UProject, error) {
 	prj.Name = filepath.Base(uprojectPath[:len(uprojectPath)-len(".uproject")])
 	prj.ProjectRoot = filepath.Dir(uprojectPath)
 	prj.RootPath = filepath.Dir(prj.ProjectRoot)
-
 	{
 		editorpathMatches, _ := filepath.Glob(filepath.Join(prj.RootPath, ".ue4-version"))
 		if len(editorpathMatches) == 0 {
@@ -129,6 +129,7 @@ func uprojectObj(uprojectPath string) (*UProject, error) {
 			prj.EngineRoot = filepath.Join(wsl.UnixPath(UNREAL_ENGINE_INSTALL_ROOT), "UE_"+prj.EngineAssociation, "Engine")
 		}
 	}
+	prj.UE4CmdExe = filepath.Join(prj.EngineRoot, "Binaries", "Win64", "UE4Editor-Cmd.exe")
 
 	prj.Targets = targets(prj.ProjectRoot)
 	prj.Configurations = CONFIGURATION_LIST

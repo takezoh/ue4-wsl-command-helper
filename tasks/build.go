@@ -24,7 +24,7 @@ func InitBuilds(c *command.Context) {
 	c.Add(newBuildCmd(c.Parser.NewCommand("build", "Build")))
 	c.Add(newBuildCmd(c.Parser.NewCommand("clean", "Clean")))
 	c.Add(newBuildCmd(c.Parser.NewCommand("rebuild", "Rebuild")))
-	c.Add(newPackageCmd(c.Parser.NewCommand("package", "Make package")))
+	c.Add(newBuildCmd(c.Parser.NewCommand("package", "Make package")))
 }
 
 func newBuildCmd(command *argparse.Command) (*argparse.Command, *buildTarget) {
@@ -35,17 +35,10 @@ func newBuildCmd(command *argparse.Command) (*argparse.Command, *buildTarget) {
 	return command, t
 }
 
-func newPackageCmd(command *argparse.Command) (*argparse.Command, *buildTarget) {
-	t := new(buildTarget)
-	t.platform = command.Selector("p", "platform", Context.uproject.Platforms, &argparse.Options{Required: true, Help: "Target platform"})
-	t.configuration = command.Selector("c", "configuration", Context.uproject.Configurations, &argparse.Options{Required: true, Help: "Target configuration"})
-	return command, t
-}
-
 func (t *buildTarget) Execute(ctx *command.Context, cmd *argparse.Command) {
 	switch cmd.GetName() {
 	case "build", "clean", "rebuild": Context.Build(cmd.GetName(), *t.target, *t.platform, *t.configuration, *ctx.Opts...)
-	case "package": Context.Package(*t.platform, *t.configuration, *ctx.Opts...)
+	case "package": Context.Package(*t.target, *t.platform, *t.configuration, *ctx.Opts...)
 	}
 }
 
@@ -105,7 +98,7 @@ func (c *UE4Context) Build(command string, target string, platform string, confi
 	return c.runBuild(command, target, platform, configuration, args...)
 }
 
-func (c *UE4Context) Package(platform string, configuration string, args... string) error {
+func (c *UE4Context) Package(target string, platform string, configuration string, args... string) error {
 	archiveName := platform +"_"+ configuration +"_"+ time.Now().Format("20060102_150405.00000")
 	archiveDir := filepath.Join(c.uproject.ProjectRoot, "Saved", "Packages", archiveName)
 	username := os.Getenv("USERNAME")
@@ -124,25 +117,28 @@ func (c *UE4Context) Package(platform string, configuration string, args... stri
 		"-nocompileeditor",
 		"-nop4",
 		"-project="+wsl.WinPath(c.uproject.UProjectPath),
+		"-target="+target,
 		// '-SkipCookingEditorContent',
 		"-clientconfig="+configuration,
-		"-prereqs", "-targetplatform="+platform, "-utf8output",
+		"-serverconfig="+configuration,
+		"-targetplatform="+platform,
+		"-ue4exe="+wsl.WinPath(c.uproject.UE4CmdExe),
+		"-ddc=DerivedDataBackendGraph",
+		"-utf8output",
 		"-fullcrashdump")
 	cmdargs = append(cmdargs,
 		"-cookflavor=ASTC",
+		"-prereqs",
 		"-build", "-compile",
 		"-cook", "-stage",
-		"-pak",
-		"-package",
+		"-pak", "-package",
 		// "-distribution",
 		// "-nodebuginfo"
 		"-compressed",
-		"-archive",
-		"-archivedirectory="+wsl.WinPath(archiveDir),
+		"-archive", "-archivedirectory="+wsl.WinPath(archiveDir),
 		"-mapsonly")
 	cmdargs = append(cmdargs, args...)
 	cmdargs = append(cmdargs,
-		"-serverconfig="+configuration,
 		fmt.Sprintf(`-addcmdline=-statnamedevents -StatCmds='unit,fps' -SessionId=%v -SessionOwner='%v' -SessionName='%v' -messaging`,
 			uuid.NewString(), username, c.uproject.Name))
 	if configuration == "Shipping" {
