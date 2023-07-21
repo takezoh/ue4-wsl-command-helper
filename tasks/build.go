@@ -142,7 +142,8 @@ func (c *UE4Context) Package(target string, platform string, configuration strin
 		// "-nodebuginfo"
 		"-compressed",
 		"-archive", "-archivedirectory="+wsl.WinPath(archiveDir),
-		"-mapsonly")
+		"-mapsonly",
+		"-CrashReporter")
 	if isServer {
 		cmdargs = append(cmdargs, "-server")
 	}
@@ -153,7 +154,7 @@ func (c *UE4Context) Package(target string, platform string, configuration strin
 	if configuration == "Shipping" {
 		cmdargs = append(cmdargs, "-nodebuginfo")
 	} else {
-		cmdargs = append(cmdargs, "-debuginfo", "-CrashReporter")
+		cmdargs = append(cmdargs, "-debuginfo")
 		if has("-cook", cmdargs) {
 			cmdargs = append(cmdargs, "-interactivecooking")
 		}
