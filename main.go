@@ -12,6 +12,7 @@ func main() {
 	tasks.InitConfigure(cmd)
 	tasks.InitBuilds(cmd)
 	tasks.InitEditor(cmd)
+	tasks.InitCommand(cmd)
 
 	err := cmd.Parse(os.Args)
 	if err != nil {
