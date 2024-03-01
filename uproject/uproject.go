@@ -2,8 +2,10 @@ package uproject
 
 import (
 	"app/wsl"
+	"bytes"
 	"encoding/json"
 	"errors"
+	"io"
 	"os"
 	"path/filepath"
 	"strings"
@@ -93,9 +95,13 @@ func uprojectObj(uprojectPath string) (*UProject, error) {
 		return nil, err
 	}
 
+	b, _ := io.ReadAll(f)
+	if bytes.Equal(b[:3], []byte{0xef, 0xbb, 0xbf}) {
+		b = b[3:]
+	}
+
 	var obj map[string]interface{}
-	err = json.NewDecoder(f).Decode(&obj)
-	if err != nil {
+	if err := json.Unmarshal(b, &obj); err != nil {
 		return nil, err
 	}
 	prj.FileVersion = int(obj["FileVersion"].(float64))
