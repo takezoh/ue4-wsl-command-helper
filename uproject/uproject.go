@@ -13,7 +13,7 @@ import (
 
 var (
 	CONFIGURATION_LIST = []string{"Development", "Test", "Shipping"}
-	PLATFORM_LIST      = []string{"Win64", "Android", "LinuxServer", "PS4", "PS5"}
+	PLATFORM_LIST      = []string{"Win64", "Android", "Linux", "PS4", "PS5"}
 )
 
 const (
