@@ -39,6 +39,6 @@ func (c *UE4Context) ProjectFiles(args ...string) error {
 			`C:\Windows\System32\cmd.exe`, "/c",
 			wsl.WinPath(builder))
 	}
-	cmdargs = append(cmdargs, wsl.WinPath(c.uproject.UProjectPath), "-Game", "-Engine", "-makefile", "-VSCode")
+	cmdargs = append(cmdargs, wsl.WinPath(c.uproject.UProjectPath), "-Game", "-Engine", "-makefile", "-VSCode", "-2022")
 	return c.run(cmdargs)
 }

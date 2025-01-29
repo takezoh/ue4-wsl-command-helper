@@ -23,12 +23,14 @@ const (
 
 type (
 	UProject struct {
+		IsUE5        bool
+
 		Name         string
 		ProjectRoot  string
 		RootPath     string
 		EngineRoot   string
 		UProjectPath string
-		UE4CmdExe    string
+		CmdExe    string
 
 		Targets        []string
 		Configurations []string
@@ -135,7 +137,12 @@ func uprojectObj(uprojectPath string) (*UProject, error) {
 			prj.EngineRoot = filepath.Join(wsl.UnixPath(UNREAL_ENGINE_INSTALL_ROOT), "UE_"+prj.EngineAssociation, "Engine")
 		}
 	}
-	prj.UE4CmdExe = filepath.Join(prj.EngineRoot, "Binaries", "Win64", "UE4Editor-Cmd.exe")
+	prj.IsUE5 = false
+	prj.CmdExe = filepath.Join(prj.EngineRoot, "Binaries", "Win64", "UE4Editor-Cmd.exe")
+	if _, err := os.Stat(prj.CmdExe); err != nil {
+		prj.IsUE5 = true
+		prj.CmdExe = filepath.Join(prj.EngineRoot, "Binaries", "Win64", "UnrealEditor-Cmd.exe")
+	}
 
 	prj.Targets = targets(prj.ProjectRoot)
 	prj.Configurations = CONFIGURATION_LIST

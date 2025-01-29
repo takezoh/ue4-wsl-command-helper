@@ -23,6 +23,9 @@ func (t *editorTarget) Execute(ctx *command.Context, cmd *argparse.Command) {
 
 func (c *UE4Context) Editor(args ...string) error {
 	editorBin := filepath.Join(c.uproject.EngineRoot, "Binaries", "Win64", "UE4Editor.exe")
+	if c.uproject.IsUE5 {
+		editorBin = filepath.Join(c.uproject.EngineRoot, "Binaries", "Win64", "UnrealEditor.exe")
+	}
 
 	cmdargs := make([]string, 0)
 	cmdargs = append(cmdargs,
