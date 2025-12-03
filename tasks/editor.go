@@ -35,5 +35,7 @@ func (c *UE4Context) Editor(args ...string) error {
 		"-fullcrashdump",
 		"-NOVERIFYGC")
 
+	cmdargs = append(cmdargs, args...)
+
 	return c.start(cmdargs)
 }

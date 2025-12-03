@@ -76,6 +76,7 @@ func (c *UE4Context) runBuild(command string, target string, platform string, co
 		cmdargs = append(cmdargs, args...)
 		cmdargs = append(cmdargs,
 			// "-verbose",
+			"-unattended",
 			"-fullcrashdump")
 	} else {
 		command := strings.ToLower(command)
@@ -125,6 +126,7 @@ func (c *UE4Context) Package(target string, platform string, configuration strin
 		wsl.WinPath(filepath.Join(c.uproject.EngineRoot, "Build", "BatchFiles", "RunUAT.bat")),
 		"-ScriptsForProject="+wsl.WinPath(c.uproject.UProjectPath),
 		"BuildCookRun",
+		"-unattended",
 		"-nocompileeditor",
 		"-nop4",
 		"-project="+wsl.WinPath(c.uproject.UProjectPath),

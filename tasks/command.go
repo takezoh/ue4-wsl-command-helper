@@ -1,6 +1,7 @@
 package tasks
 
 import (
+	"os"
 	"app/command"
 	"app/wsl"
 	"github.com/akamensky/argparse"
@@ -26,6 +27,9 @@ func (t *commandTarget) Execute(ctx *command.Context, cmd *argparse.Command) {
 
 func (c *UE4Context) Command(run string, args ...string) error {
 	cmd := filepath.Join(c.uproject.EngineRoot, "Binaries", "Win64", "UE4Editor-Cmd.exe")
+	if _, err := os.Stat(cmd); err != nil {
+		cmd = filepath.Join(c.uproject.EngineRoot, "Binaries", "Win64", "UnrealEditor-Cmd.exe")
+	}
 
 	cmdargs := make([]string, 0)
 	cmdargs = append(cmdargs,
