@@ -2,14 +2,14 @@ package tasks
 
 import (
 	"app/command"
-	"app/wsl"
 	"fmt"
-	"github.com/akamensky/argparse"
-	"github.com/google/uuid"
 	"os"
 	"path/filepath"
 	"strings"
 	"time"
+
+	"github.com/akamensky/argparse"
+	"github.com/google/uuid"
 )
 
 type (
@@ -68,11 +68,11 @@ func (c *UE4Context) runBuild(command string, target string, platform string, co
 	if os.IsNotExist(err) {
 		command := strings.Title(command)
 		cmdargs = append(cmdargs,
-			wsl.WinPath(filepath.Join(c.uproject.EngineRoot, "Build", "BatchFiles", command+".bat")),
+			filepath.Join(c.uproject.EngineRoot, "Build", "BatchFiles", command+".bat"),
 			target,
 			platform,
 			configuration,
-			wsl.WinPath(c.uproject.UProjectPath))
+			c.uproject.UProjectPath)
 		cmdargs = append(cmdargs, args...)
 		cmdargs = append(cmdargs,
 			// "-verbose",
@@ -84,9 +84,9 @@ func (c *UE4Context) runBuild(command string, target string, platform string, co
 			command = "build"
 		}
 		cmdargs = append(cmdargs,
-			wsl.WinPath(filepath.Join(c.uproject.EngineRoot, "Build", "BatchFiles", "MSBuild.bat")),
+			filepath.Join(c.uproject.EngineRoot, "Build", "BatchFiles", "MSBuild.bat"),
 			"/t:"+command,
-			wsl.WinPath(csproj),
+			csproj,
 			"/p:GenerateFullPaths=true",
 			"/p:DebugType=portable",
 			"/p:Configuration="+configuration,
@@ -99,10 +99,15 @@ func (c *UE4Context) runBuild(command string, target string, platform string, co
 func (c *UE4Context) Build(command string, target string, platform string, configuration string, args ...string) error {
 	// c.runBuild(command, "DotNETCommon/DotNETUtilities", platform, "Development")
 	// c.runBuild(command, "UnrealHeaderTool", "Win64", "Development")
-	c.runBuild(command, "UnrealBuildTool", "Win64", "Development")
-	// c.runBuild(command, "AutomationTool", "Win64", "Development")
-	c.runBuild(command, "UnrealLightmass", "Win64", "Development")
-	c.runBuild(command, "ShaderCompileWorker", "Win64", "Development")
+	if err := c.runBuild(command, "UnrealBuildTool", "Win64", "Development"); err != nil {
+		return err
+	}
+	if err := c.runBuild(command, "UnrealLightmass", "Win64", "Development"); err != nil {
+		return err
+	}
+	if err := c.runBuild(command, "ShaderCompileWorker", "Win64", "Development"); err != nil {
+		return err
+	}
 	return c.runBuild(command, target, platform, configuration, args...)
 }
 
@@ -117,19 +122,19 @@ func (c *UE4Context) Package(target string, platform string, configuration strin
 		return err
 	}
 	cmdargs := make([]string, 0)
-	unrealExe := "-ue4exe="+wsl.WinPath(c.uproject.CmdExe)
+	unrealExe := "-ue4exe="+c.uproject.CmdExe
 	if c.uproject.IsUE5 {
-		unrealExe = "-unrealexe="+wsl.WinPath(c.uproject.CmdExe)
+		unrealExe = "-unrealexe="+c.uproject.CmdExe
 	}
 	cmdargs = append(cmdargs,
 		`C:\Windows\System32\cmd.exe`, "/c",
-		wsl.WinPath(filepath.Join(c.uproject.EngineRoot, "Build", "BatchFiles", "RunUAT.bat")),
-		"-ScriptsForProject="+wsl.WinPath(c.uproject.UProjectPath),
+		filepath.Join(c.uproject.EngineRoot, "Build", "BatchFiles", "RunUAT.bat"),
+		"-ScriptsForProject="+c.uproject.UProjectPath,
 		"BuildCookRun",
 		"-unattended",
 		"-nocompileeditor",
 		"-nop4",
-		"-project="+wsl.WinPath(c.uproject.UProjectPath),
+		"-project="+c.uproject.UProjectPath,
 		"-target="+target,
 		// '-SkipCookingEditorContent',
 		"-clientconfig="+configuration,
@@ -148,7 +153,7 @@ func (c *UE4Context) Package(target string, platform string, configuration strin
 		// "-distribution",
 		// "-nodebuginfo"
 		"-compressed",
-		"-archive", "-archivedirectory="+wsl.WinPath(archiveDir),
+		"-archive", "-archivedirectory="+archiveDir,
 		"-mapsonly",
 		"-CrashReporter")
 	if isServer {

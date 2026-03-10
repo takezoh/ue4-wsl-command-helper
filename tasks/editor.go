@@ -2,9 +2,9 @@ package tasks
 
 import (
 	"app/command"
-	"app/wsl"
-	"github.com/akamensky/argparse"
 	"path/filepath"
+
+	"github.com/akamensky/argparse"
 )
 
 type (
@@ -29,8 +29,8 @@ func (c *UE4Context) Editor(args ...string) error {
 
 	cmdargs := make([]string, 0)
 	cmdargs = append(cmdargs,
-		wsl.WinPath(editorBin),
-		wsl.WinPath(c.uproject.UProjectPath),
+		editorBin,
+		c.uproject.UProjectPath,
 		"-skipcompile",
 		"-fullcrashdump",
 		"-NOVERIFYGC")

@@ -1,7 +1,6 @@
 package uproject
 
 import (
-	"app/wsl"
 	"bytes"
 	"encoding/json"
 	"errors"
@@ -73,7 +72,7 @@ func uprojectPath() (string, error) {
 		}
 	}
 
-	for currentDir != string(os.PathSeparator) {
+	for filepath.Dir(currentDir) != currentDir {
 		matches, _ := filepath.Glob(filepath.Join(currentDir, "*.uproject"))
 		if len(matches) == 0 {
 			matches, _ = filepath.Glob(filepath.Join(currentDir, "*", "*.uproject"))
@@ -134,7 +133,7 @@ func uprojectObj(uprojectPath string) (*UProject, error) {
 		}
 		if _, err := os.Stat(prj.EngineRoot); os.IsNotExist(err) {
 			prj.RootPath = prj.ProjectRoot
-			prj.EngineRoot = filepath.Join(wsl.UnixPath(UNREAL_ENGINE_INSTALL_ROOT), "UE_"+prj.EngineAssociation, "Engine")
+			prj.EngineRoot = filepath.Join(UNREAL_ENGINE_INSTALL_ROOT, "UE_"+prj.EngineAssociation, "Engine")
 		}
 	}
 	prj.IsUE5 = false

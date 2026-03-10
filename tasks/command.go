@@ -1,11 +1,11 @@
 package tasks
 
 import (
-	"os"
 	"app/command"
-	"app/wsl"
-	"github.com/akamensky/argparse"
+	"os"
 	"path/filepath"
+
+	"github.com/akamensky/argparse"
 )
 
 type (
@@ -33,8 +33,8 @@ func (c *UE4Context) Command(run string, args ...string) error {
 
 	cmdargs := make([]string, 0)
 	cmdargs = append(cmdargs,
-		wsl.WinPath(cmd),
-		wsl.WinPath(c.uproject.UProjectPath),
+		cmd,
+		c.uproject.UProjectPath,
 		"-run=" + run)
 	cmdargs = append(cmdargs, args...)
 	return c.run(cmdargs)

@@ -3,10 +3,10 @@ package tasks
 import (
 	"app/command"
 	"app/uproject"
-	"app/wsl"
-	"github.com/akamensky/argparse"
 	"os"
 	"path/filepath"
+
+	"github.com/akamensky/argparse"
 )
 
 type (
@@ -37,9 +37,8 @@ func (c *UE4Context) ProjectFiles(args ...string) error {
 	} else {
 		cmdargs = append(cmdargs,
 			`C:\Windows\System32\cmd.exe`, "/c",
-			wsl.WinPath(builder))
+			builder)
 	}
-	// cmdargs = append(cmdargs, wsl.WinPath(c.uproject.UProjectPath), "-Game", "-Engine", "-makefile", "-VSCode", "-2022")
-	cmdargs = append(cmdargs, wsl.WinPath(c.uproject.UProjectPath), "-VSCode")
+	cmdargs = append(cmdargs, c.uproject.UProjectPath, "-VSCode")
 	return c.run(cmdargs)
 }

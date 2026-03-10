@@ -4,58 +4,64 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Overview
 
-WSL2 上で Unreal Engine 4/5 のビルド・開発作業を実行するコマンドラインツール。`.uproject` を自動検出してプロジェクトコンテキストを初期化し、Windows バッチスクリプトを WSL から呼び出す。
+Windows binary (`ue.exe`) for running Unreal Engine 4/5 build and development tasks. Auto-detects `.uproject` to initialize project context and invokes Windows batch scripts. Can be called directly from WSL via interop.
+
+## Build
+
+Cross-compile as a Windows binary (eliminates the need for wslpath conversion when called via WSL interop).
+
+```bash
+make        # produces .claude/skills/ue/bin/ue.exe
+```
 
 ## Commands
 
 ```bash
-# ビルド実行（直接）
-go run ./main.go build -t <target> -p <platform> -c <configuration>
-go run ./main.go clean -t <target> -p <platform> -c <configuration>
-go run ./main.go rebuild -t <target> -p <platform> -c <configuration>
-go run ./main.go package -t <target> -p <platform> -c <configuration> [--server]
-go run ./main.go configure
-go run ./main.go editor
-go run ./main.go command -r <commandlet>
-
-# Mage タスク経由
-mage Build <target> <platform> <configuration>
-mage Clean <target> <platform> <configuration>
-mage Rebuild <target> <platform> <configuration>
-mage Package <platform> <configuration>
-mage Configure
-mage Editor
+.claude/skills/ue/bin/ue.exe build -t <target> -p <platform> -c <configuration>
+.claude/skills/ue/bin/ue.exe clean -t <target> -p <platform> -c <configuration>
+.claude/skills/ue/bin/ue.exe rebuild -t <target> -p <platform> -c <configuration>
+.claude/skills/ue/bin/ue.exe package -t <target> -p <platform> -c <configuration> [--server]
+.claude/skills/ue/bin/ue.exe configure
+.claude/skills/ue/bin/ue.exe editor
+.claude/skills/ue/bin/ue.exe command -r <commandlet>
 ```
 
 Platform: `Win64, Android, Linux, PS4, PS5`
 Configuration: `Development, Test, Shipping`
 
-テスト・lint コマンドは未定義。
+No test or lint commands defined.
 
 ## Architecture
 
-### 実行フロー
+### Execution flow
 
 ```
 main.go
-  → command.New()          # コマンドフレームワーク初期化
-  → Init*(ctx) x4          # タスク登録 (Configure/Build/Editor/Command)
-  → cmd.Parse(os.Args)     # 引数解析・対応タスク実行
+  -> command.New()          # Initialize command framework
+  -> Init*(ctx) x4          # Register tasks (Configure/Build/Editor/Command)
+  -> cmd.Parse(os.Args)     # Parse args and dispatch to task
 ```
 
-### 主要コンポーネント
+### Key components
 
-- **`command/command.go`**: `Target` インターフェース（`Execute(ctx, cmd)`）と argparse ベースのディスパッチャ
-- **`tasks/context.go`**: `UE4Context` グローバル変数。`init()` で `.uproject` を探索してプロジェクトルートに `cd`、以降すべてのタスクがこのコンテキストを参照
-- **`uproject/uproject.go`**: `.uproject` JSON 解析。UE4/UE5 自動判別（コマンド実行ファイル名で判定）、エンジンルート解決、ターゲット抽出
-- **`wsl/wsl.go`**: `wslpath` コマンドで Unix ↔ Windows パス変換（`UnixPath()` / `WinPath()`）
-- **`tasks/build.go`**: UnrealBuildTool 呼び出し。C# プロジェクトは MSBuild.bat、ネイティブは Build.bat を使い分け
-- **`tasks/command.go`**: Commandlet 実行（`UE4Editor-Cmd.exe` / `UnrealEditor-Cmd.exe`）
+- **`command/command.go`**: `Target` interface (`Execute(ctx, cmd)`) and argparse-based dispatcher
+- **`tasks/context.go`**: `UE4Context` global. `init()` searches for `.uproject` and `cd`s to project root; all tasks reference this context
+- **`uproject/uproject.go`**: `.uproject` JSON parsing. Auto-detects UE4/UE5 (by executable name), resolves engine root, extracts targets
+- **`tasks/build.go`**: UnrealBuildTool invocation. Uses MSBuild.bat for C# projects, Build.bat for native
+- **`tasks/command.go`**: Commandlet execution (`UE4Editor-Cmd.exe` / `UnrealEditor-Cmd.exe`)
 
-### UE4/UE5 分岐
+### UE4/UE5 branching
 
-`uproject.go` でエンジンバージョンを判別し、`UE4Context` に保持。各タスクで実行ファイル名を切り替える（`UE4Editor.exe` vs `UnrealEditor.exe` など）。
+`uproject.go` detects the engine version and stores it in `UE4Context`. Each task switches executable names accordingly (`UE4Editor.exe` vs `UnrealEditor.exe`, etc.).
 
-### 追加オプション
+### Extra options
 
-`-A` / `--opt` フラグで任意の追加引数を UE ツールにそのまま渡せる。
+`-A` / `--opt` flag passes arbitrary additional arguments directly to UE tools.
+
+## Skill installation
+
+To use as a Claude Code Skill in other UE projects:
+
+```bash
+mkdir -p .claude/skills && ln -s /path/to/ue4-wsl-command-helper/.claude/skills/ue .claude/skills/ue
+```

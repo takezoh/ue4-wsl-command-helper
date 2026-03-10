@@ -2,7 +2,6 @@ package tasks
 
 import (
 	"app/uproject"
-	"app/wsl"
 	"context"
 	"io"
 	"os"
@@ -41,7 +40,7 @@ func newExecCmd(command []string) (*exec.Cmd, error) {
 	println(">>>")
 	println("RUN: " + strings.Join(command, " "))
 	println("<<<")
-	cmd := exec.Command(wsl.UnixPath(command[0]), command[1:]...)
+	cmd := exec.Command(command[0], command[1:]...)
 
 	stdout, err := cmd.StdoutPipe()
 	if err != nil {
