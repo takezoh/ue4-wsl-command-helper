@@ -27,10 +27,7 @@ Execute `ue.exe` based on `$ARGUMENTS`. Do NOT ask for confirmation or prompt fo
 The binary is at `bin/ue.exe` relative to this SKILL.md. Resolve and execute:
 
 ```bash
-"$(dirname "$(readlink -f /path/to/SKILL.md)")/bin/ue.exe" <subcommand> [options]
-```
-
-Resolve `/path/to/SKILL.md` to the actual path of this file.
+/path/to/skill/bin/ue.exe" <subcommand> [options]
 
 ## Execution strategy
 
