@@ -70,10 +70,24 @@ The target name is the filename without the `.Target.cs` extension.
 
 - `TARGET_DIR`: Explicitly specify the project directory (defaults to auto-detecting `.uproject` from cwd)
 
-## Notes
+## Execution strategy
 
-- Builds can take tens of minutes. Set `timeout: 600000` on Bash tool calls
-- For builds expected to exceed 10 minutes, prefer background execution:
-  ```bash
-  ue.exe build -t MyGame -p Win64 -c Development > /tmp/ue-build.log 2>&1 &
-  ```
+Builds can take tens of minutes. To avoid blocking the main context:
+
+1. Generate a unique log file path: `/tmp/ue-build-<pid>.log`
+2. Launch the build in the background:
+   ```bash
+   ue.exe build -t MyGame -p Win64 -c Development > /tmp/ue-build-$$.log 2>&1 &
+   echo "PID=$! LOG=/tmp/ue-build-$$.log"
+   ```
+3. Return immediately to the main context with:
+   - The exact command that was launched
+   - The PID and log file path
+   - How to check status: `kill -0 <pid> 2>/dev/null && echo running || echo done` and `tail -50 <log>`
+
+## Reporting results
+
+This skill runs in a forked context. You MUST return a clear result message to the parent context:
+
+- **For long-running commands** (build, clean, rebuild, package): Launch in background and return the PID + log path immediately
+- **For quick commands** (configure, editor, command): Run directly and report success/failure with exit code and last 50 lines of output on error
