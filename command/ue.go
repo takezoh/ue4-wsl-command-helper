@@ -1,7 +1,7 @@
 package command
 
 import (
-	"app/uproject"
+	"github.com/takezoh/ue-cli-skill/uproject"
 	"fmt"
 	"os"
 	"path/filepath"

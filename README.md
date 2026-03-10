@@ -1,4 +1,4 @@
-# ue4-wsl-command-helper
+# ue-cli-skill
 
 Windows binary (`ue.exe`) for running Unreal Engine 4/5 build and development tasks. Auto-detects `.uproject` to initialize project context and invokes Windows batch scripts. Can be called directly from WSL via interop.
 

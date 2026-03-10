@@ -1,9 +1,9 @@
 package main
 
 import (
-	"app/command"
-	"app/tasks"
-	"app/uproject"
+	"github.com/takezoh/ue-cli-skill/command"
+	"github.com/takezoh/ue-cli-skill/tasks"
+	"github.com/takezoh/ue-cli-skill/uproject"
 	"context"
 	"os"
 )

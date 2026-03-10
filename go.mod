@@ -1,6 +1,6 @@
-module app
+module github.com/takezoh/ue-cli-skill
 
-go 1.19
+go 1.26.1
 
 require (
 	github.com/akamensky/argparse v1.4.0

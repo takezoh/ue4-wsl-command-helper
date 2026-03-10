@@ -1,7 +1,7 @@
 package tasks
 
 import (
-	"app/command"
+	"github.com/takezoh/ue-cli-skill/command"
 
 	"github.com/akamensky/argparse"
 )
