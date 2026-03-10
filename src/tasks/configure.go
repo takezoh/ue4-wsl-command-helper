@@ -15,6 +15,6 @@ func InitConfigure(p *command.Parser, ue *command.UE) {
 	p.Add(cmd, &configureTask{opts: p.Opts})
 }
 
-func (t *configureTask) Do(ue *command.UE, cmd *argparse.Command) {
-	ue.ProjectFiles(*t.opts...)
+func (t *configureTask) Do(ue *command.UE, cmd *argparse.Command) error {
+	return ue.ProjectFiles(*t.opts...)
 }

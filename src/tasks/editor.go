@@ -15,6 +15,6 @@ func InitEditor(p *command.Parser, ue *command.UE) {
 	p.Add(cmd, &editorTask{opts: p.Opts})
 }
 
-func (t *editorTask) Do(ue *command.UE, cmd *argparse.Command) {
-	ue.Editor(*t.opts...)
+func (t *editorTask) Do(ue *command.UE, cmd *argparse.Command) error {
+	return ue.Editor(*t.opts...)
 }

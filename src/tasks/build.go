@@ -32,11 +32,12 @@ func InitBuilds(p *command.Parser, ue *command.UE) {
 	add("package", "Make package")
 }
 
-func (t *buildTask) Do(ue *command.UE, cmd *argparse.Command) {
+func (t *buildTask) Do(ue *command.UE, cmd *argparse.Command) error {
 	switch cmd.GetName() {
 	case "build", "clean", "rebuild":
-		ue.Build(cmd.GetName(), *t.target, *t.platform, *t.configuration, *t.opts...)
+		return ue.Build(cmd.GetName(), *t.target, *t.platform, *t.configuration, *t.opts...)
 	case "package":
-		ue.Package(*t.target, *t.platform, *t.configuration, *t.isServer, *t.opts...)
+		return ue.Package(*t.target, *t.platform, *t.configuration, *t.isServer, *t.opts...)
 	}
+	return nil
 }

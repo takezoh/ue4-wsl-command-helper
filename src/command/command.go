@@ -21,7 +21,7 @@ type (
 	}
 
 	Task interface {
-		Do(ue *UE, cmd *argparse.Command)
+		Do(ue *UE, cmd *argparse.Command) error
 	}
 )
 
@@ -37,7 +37,7 @@ func (p *Parser) Parse(args []string) error {
 	}
 	for _, v := range p.targets {
 		if v.cmd.Happened() {
-			v.task.Do(p.ue, v.cmd)
+			return v.task.Do(p.ue, v.cmd)
 		}
 	}
 	return nil

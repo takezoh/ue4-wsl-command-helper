@@ -18,6 +18,6 @@ func InitCommand(p *command.Parser, ue *command.UE) {
 	p.Add(cmd, t)
 }
 
-func (t *commandTask) Do(ue *command.UE, cmd *argparse.Command) {
-	ue.Command(*t.run, *t.opts...)
+func (t *commandTask) Do(ue *command.UE, cmd *argparse.Command) error {
+	return ue.Command(*t.run, *t.opts...)
 }
