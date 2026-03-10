@@ -2,40 +2,19 @@ package tasks
 
 import (
 	"app/command"
-	"path/filepath"
 
 	"github.com/akamensky/argparse"
 )
 
-type (
-	editorTarget struct {
-	}
-)
-
-func InitEditor(c *command.Context) {
-	command := c.Parser.NewCommand("editor", "Launch editor")
-	c.Add(command, &editorTarget{})
+type editorTask struct {
+	opts *[]string
 }
 
-func (t *editorTarget) Execute(ctx *command.Context, cmd *argparse.Command) {
-	Context.Editor(*ctx.Opts...)
+func InitEditor(p *command.Parser, ue *command.UE) {
+	cmd := p.ArgParser.NewCommand("editor", "Launch editor")
+	p.Add(cmd, &editorTask{opts: p.Opts})
 }
 
-func (c *UE4Context) Editor(args ...string) error {
-	editorBin := filepath.Join(c.uproject.EngineRoot, "Binaries", "Win64", "UE4Editor.exe")
-	if c.uproject.IsUE5 {
-		editorBin = filepath.Join(c.uproject.EngineRoot, "Binaries", "Win64", "UnrealEditor.exe")
-	}
-
-	cmdargs := make([]string, 0)
-	cmdargs = append(cmdargs,
-		editorBin,
-		c.uproject.UProjectPath,
-		"-skipcompile",
-		"-fullcrashdump",
-		"-NOVERIFYGC")
-
-	cmdargs = append(cmdargs, args...)
-
-	return c.start(cmdargs)
+func (t *editorTask) Do(ue *command.UE, cmd *argparse.Command) {
+	ue.Editor(*t.opts...)
 }

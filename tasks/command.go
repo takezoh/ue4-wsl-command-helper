@@ -2,40 +2,22 @@ package tasks
 
 import (
 	"app/command"
-	"os"
-	"path/filepath"
 
 	"github.com/akamensky/argparse"
 )
 
-type (
-	commandTarget struct {
-		run *string
-	}
-)
-
-func InitCommand(c *command.Context) {
-	command := c.Parser.NewCommand("command", "Run commandlet")
-	t := commandTarget{}
-	t.run = command.String("r", "run", &argparse.Options{Required: true, Help: "Run target"})
-	c.Add(command, &t)
+type commandTask struct {
+	opts *[]string
+	run  *string
 }
 
-func (t *commandTarget) Execute(ctx *command.Context, cmd *argparse.Command) {
-	Context.Command(*t.run, *ctx.Opts...)
+func InitCommand(p *command.Parser, ue *command.UE) {
+	cmd := p.ArgParser.NewCommand("command", "Run commandlet")
+	t := &commandTask{opts: p.Opts}
+	t.run = cmd.String("r", "run", &argparse.Options{Required: true, Help: "Run target"})
+	p.Add(cmd, t)
 }
 
-func (c *UE4Context) Command(run string, args ...string) error {
-	cmd := filepath.Join(c.uproject.EngineRoot, "Binaries", "Win64", "UE4Editor-Cmd.exe")
-	if _, err := os.Stat(cmd); err != nil {
-		cmd = filepath.Join(c.uproject.EngineRoot, "Binaries", "Win64", "UnrealEditor-Cmd.exe")
-	}
-
-	cmdargs := make([]string, 0)
-	cmdargs = append(cmdargs,
-		cmd,
-		c.uproject.UProjectPath,
-		"-run=" + run)
-	cmdargs = append(cmdargs, args...)
-	return c.run(cmdargs)
+func (t *commandTask) Do(ue *command.UE, cmd *argparse.Command) {
+	ue.Command(*t.run, *t.opts...)
 }

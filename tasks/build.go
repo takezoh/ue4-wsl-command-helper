@@ -2,174 +2,41 @@ package tasks
 
 import (
 	"app/command"
-	"fmt"
-	"os"
-	"path/filepath"
-	"strings"
-	"time"
 
 	"github.com/akamensky/argparse"
-	"github.com/google/uuid"
 )
 
-type (
-	buildTarget struct {
-		platform      *string
-		configuration *string
-		target        *string
-		isServer      *bool
-	}
-)
-
-func InitBuilds(c *command.Context) {
-	c.Add(newBuildCmd(c.Parser.NewCommand("build", "Build")))
-	c.Add(newBuildCmd(c.Parser.NewCommand("clean", "Clean")))
-	c.Add(newBuildCmd(c.Parser.NewCommand("rebuild", "Rebuild")))
-	c.Add(newBuildCmd(c.Parser.NewCommand("package", "Make package")))
+type buildTask struct {
+	opts          *[]string
+	platform      *string
+	configuration *string
+	target        *string
+	isServer      *bool
 }
 
-func newBuildCmd(command *argparse.Command) (*argparse.Command, *buildTarget) {
-	t := new(buildTarget)
-	t.target = command.Selector("t", "target", Context.uproject.Targets, &argparse.Options{Required: true, Help: "Build target"})
-	t.platform = command.Selector("p", "platform", Context.uproject.Platforms, &argparse.Options{Required: true, Help: "Target platform"})
-	t.configuration = command.Selector("c", "configuration", Context.uproject.Configurations, &argparse.Options{Required: true, Help: "Target configuration"})
-	if command.GetName() == "package" {
-		t.isServer = command.Flag("", "server", &argparse.Options{Required: false, Help: "Build to be server role"})
+func InitBuilds(p *command.Parser, ue *command.UE) {
+	add := func(name string, desc string) {
+		cmd := p.ArgParser.NewCommand(name, desc)
+		t := &buildTask{opts: p.Opts}
+		t.target = cmd.Selector("t", "target", ue.UProject.Targets, &argparse.Options{Required: true, Help: "Build target"})
+		t.platform = cmd.Selector("p", "platform", ue.UProject.Platforms, &argparse.Options{Required: true, Help: "Target platform"})
+		t.configuration = cmd.Selector("c", "configuration", ue.UProject.Configurations, &argparse.Options{Required: true, Help: "Target configuration"})
+		if name == "package" {
+			t.isServer = cmd.Flag("", "server", &argparse.Options{Required: false, Help: "Build to be server role"})
+		}
+		p.Add(cmd, t)
 	}
-	return command, t
+	add("build", "Build")
+	add("clean", "Clean")
+	add("rebuild", "Rebuild")
+	add("package", "Make package")
 }
 
-func (t *buildTarget) Execute(ctx *command.Context, cmd *argparse.Command) {
+func (t *buildTask) Do(ue *command.UE, cmd *argparse.Command) {
 	switch cmd.GetName() {
 	case "build", "clean", "rebuild":
-		Context.Build(cmd.GetName(), *t.target, *t.platform, *t.configuration, *ctx.Opts...)
+		ue.Build(cmd.GetName(), *t.target, *t.platform, *t.configuration, *t.opts...)
 	case "package":
-		Context.Package(*t.target, *t.platform, *t.configuration, *t.isServer, *ctx.Opts...)
+		ue.Package(*t.target, *t.platform, *t.configuration, *t.isServer, *t.opts...)
 	}
-}
-
-func has(str string, arr []string) bool {
-	for _, v := range arr {
-		if v == str {
-			return true
-		}
-	}
-	return false
-}
-
-func (c *UE4Context) runBuild(command string, target string, platform string, configuration string, args ...string) error {
-	csproj := filepath.Join(c.uproject.EngineRoot, "Source", "Programs", target, filepath.Base(target)+".csproj")
-	_, err := os.Stat(csproj)
-	if err != nil && !os.IsNotExist(err) {
-		return err
-	}
-	cmdargs := make([]string, 0)
-	cmdargs = append(cmdargs, `C:\Windows\System32\cmd.exe`, "/c")
-	if os.IsNotExist(err) {
-		command := strings.Title(command)
-		cmdargs = append(cmdargs,
-			filepath.Join(c.uproject.EngineRoot, "Build", "BatchFiles", command+".bat"),
-			target,
-			platform,
-			configuration,
-			c.uproject.UProjectPath)
-		cmdargs = append(cmdargs, args...)
-		cmdargs = append(cmdargs,
-			// "-verbose",
-			"-unattended",
-			"-fullcrashdump")
-	} else {
-		command := strings.ToLower(command)
-		if command == "rebuild" {
-			command = "build"
-		}
-		cmdargs = append(cmdargs,
-			filepath.Join(c.uproject.EngineRoot, "Build", "BatchFiles", "MSBuild.bat"),
-			"/t:"+command,
-			csproj,
-			"/p:GenerateFullPaths=true",
-			"/p:DebugType=portable",
-			"/p:Configuration="+configuration,
-			"/p:Platform=AnyCPU",
-			"/verbosity:minimal")
-	}
-	return c.run(cmdargs)
-}
-
-func (c *UE4Context) Build(command string, target string, platform string, configuration string, args ...string) error {
-	// c.runBuild(command, "DotNETCommon/DotNETUtilities", platform, "Development")
-	// c.runBuild(command, "UnrealHeaderTool", "Win64", "Development")
-	if err := c.runBuild(command, "UnrealBuildTool", "Win64", "Development"); err != nil {
-		return err
-	}
-	if err := c.runBuild(command, "UnrealLightmass", "Win64", "Development"); err != nil {
-		return err
-	}
-	if err := c.runBuild(command, "ShaderCompileWorker", "Win64", "Development"); err != nil {
-		return err
-	}
-	return c.runBuild(command, target, platform, configuration, args...)
-}
-
-func (c *UE4Context) Package(target string, platform string, configuration string, isServer bool, args ...string) error {
-	archiveName := platform + "_" + configuration + "_" + time.Now().Format("20060102_150405.00000")
-	archiveDir := filepath.Join(c.uproject.ProjectRoot, "Saved", "Packages", archiveName)
-	username := os.Getenv("USERNAME")
-	if username == "" {
-		username = os.Getenv("LOGNAME")
-	}
-	if err := os.MkdirAll(archiveDir, 0755); err != nil && !os.IsExist(err) {
-		return err
-	}
-	cmdargs := make([]string, 0)
-	unrealExe := "-ue4exe="+c.uproject.CmdExe
-	if c.uproject.IsUE5 {
-		unrealExe = "-unrealexe="+c.uproject.CmdExe
-	}
-	cmdargs = append(cmdargs,
-		`C:\Windows\System32\cmd.exe`, "/c",
-		filepath.Join(c.uproject.EngineRoot, "Build", "BatchFiles", "RunUAT.bat"),
-		"-ScriptsForProject="+c.uproject.UProjectPath,
-		"BuildCookRun",
-		"-unattended",
-		"-nocompileeditor",
-		"-nop4",
-		"-project="+c.uproject.UProjectPath,
-		"-target="+target,
-		// '-SkipCookingEditorContent',
-		"-clientconfig="+configuration,
-		"-serverconfig="+configuration,
-		"-targetplatform="+platform,
-		unrealExe,
-		"-ddc=DerivedDataBackendGraph",
-		"-utf8output",
-		"-fullcrashdump")
-	cmdargs = append(cmdargs,
-		"-cookflavor=ASTC",
-		"-prereqs",
-		"-build", "-compile",
-		"-cook", "-stage",
-		"-pak", "-package",
-		// "-distribution",
-		// "-nodebuginfo"
-		"-compressed",
-		"-archive", "-archivedirectory="+archiveDir,
-		"-mapsonly",
-		"-CrashReporter")
-	if isServer {
-		cmdargs = append(cmdargs, "-server")
-	}
-	cmdargs = append(cmdargs, args...)
-	cmdargs = append(cmdargs,
-		fmt.Sprintf(`-addcmdline=-statnamedevents -StatCmds='unit,fps' -SessionId=%v -SessionOwner='%v' -SessionName='%v' -messaging`,
-			uuid.NewString(), username, c.uproject.Name))
-	if configuration == "Shipping" {
-		cmdargs = append(cmdargs, "-nodebuginfo")
-	} else {
-		cmdargs = append(cmdargs, "-debuginfo")
-		if has("-cook", cmdargs) {
-			cmdargs = append(cmdargs, "-interactivecooking")
-		}
-	}
-	return c.run(cmdargs)
 }

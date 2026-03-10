@@ -1,7 +1,6 @@
-package tasks
+package command
 
 import (
-	"app/uproject"
 	"context"
 	"io"
 	"os"
@@ -9,31 +8,12 @@ import (
 	"strings"
 )
 
-var Context *UE4Context
+type Context struct {
+	ctx context.Context
+}
 
-type (
-	UE4Context struct {
-		ctx      context.Context
-		uproject *uproject.UProject
-	}
-)
-
-func init() {
-	Context = new(UE4Context)
-	Context.ctx = context.Background()
-
-	uprj, err := uproject.GetUProject()
-	if err != nil {
-		panic(err)
-	}
-	Context.uproject = uprj
-
-	if err = os.Chdir(uprj.RootPath); err != nil {
-		panic(err)
-	}
-
-	println("Found: " + uprj.UProjectPath)
-	println("Set workspace: " + uprj.RootPath)
+func New(ctx context.Context) *Context {
+	return &Context{ctx: ctx}
 }
 
 func newExecCmd(command []string) (*exec.Cmd, error) {
@@ -65,7 +45,7 @@ func newExecCmd(command []string) (*exec.Cmd, error) {
 	return cmd, nil
 }
 
-func (c *UE4Context) run(command []string) error {
+func (c *Context) Run(command []string) error {
 	cmd, err := newExecCmd(command)
 	if err != nil {
 		return err
@@ -73,7 +53,7 @@ func (c *UE4Context) run(command []string) error {
 	return cmd.Run()
 }
 
-func (c *UE4Context) start(command []string) error {
+func (c *Context) Start(command []string) error {
 	cmd, err := newExecCmd(command)
 	if err != nil {
 		return err

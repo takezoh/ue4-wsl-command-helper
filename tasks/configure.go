@@ -2,43 +2,19 @@ package tasks
 
 import (
 	"app/command"
-	"app/uproject"
-	"os"
-	"path/filepath"
 
 	"github.com/akamensky/argparse"
 )
 
-type (
-	configureTarget struct {
-	}
-)
-
-func InitConfigure(c *command.Context) {
-	command := c.Parser.NewCommand("configure", "Make build configuration")
-	c.Add(command, &configureTarget{})
+type configureTask struct {
+	opts *[]string
 }
 
-func (t *configureTarget) Execute(ctx *command.Context, cmd *argparse.Command) {
-	Context.ProjectFiles(*ctx.Opts...)
+func InitConfigure(p *command.Parser, ue *command.UE) {
+	cmd := p.ArgParser.NewCommand("configure", "Make build configuration")
+	p.Add(cmd, &configureTask{opts: p.Opts})
 }
 
-func (c *UE4Context) ProjectFiles(args ...string) error {
-	builder := filepath.Join(c.uproject.EngineRoot, "Build", "BatchFiles", "GenerateProjectFiles.bat")
-	cmdargs := make([]string, 0)
-	_, err := os.Stat(builder)
-	if err != nil && !os.IsNotExist(err) {
-		return err
-	}
-	if os.IsNotExist(err) {
-		cmdargs = append(cmdargs,
-			uproject.UNREAL_VERSION_SELECTOR,
-			"/projectfiles")
-	} else {
-		cmdargs = append(cmdargs,
-			`C:\Windows\System32\cmd.exe`, "/c",
-			builder)
-	}
-	cmdargs = append(cmdargs, c.uproject.UProjectPath, "-VSCode")
-	return c.run(cmdargs)
+func (t *configureTask) Do(ue *command.UE, cmd *argparse.Command) {
+	ue.ProjectFiles(*t.opts...)
 }
