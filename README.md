@@ -5,7 +5,7 @@ Windows binary (`ue.exe`) for running Unreal Engine 4/5 build and development ta
 ## Build
 
 ```bash
-make        # produces bin/ue.exe
+make        # produces skills/ue/bin/ue.exe
 ```
 
 ## Commands
@@ -37,8 +37,8 @@ The target name is the filename without the `.Target.cs` extension.
 Install as a Claude Code Skill in any UE project:
 
 ```bash
-# Skill definition をシンボリックリンクでインストール
-mkdir -p .claude/skills && ln -s /path/to/ue-cli-skill/.claude/skills/ue .claude/skills/ue
+# Skill をシンボリックリンクでインストール
+mkdir -p .claude/skills && ln -s /path/to/ue-cli-skill/skills/ue .claude/skills/ue
 
 # バイナリのビルド（ue-cli-skill リポジトリで実行）
 cd /path/to/ue-cli-skill && make
@@ -47,16 +47,16 @@ cd /path/to/ue-cli-skill && make
 ## Architecture
 
 ```
-main.go
+src/main.go
   -> command.New()          # Initialize command framework
   -> Init*(ctx) x4          # Register tasks (Configure/Build/Editor/Command)
   -> cmd.Parse(os.Args)     # Parse args and dispatch to task
 ```
 
-- **`command/command.go`**: `Target` interface (`Execute(ctx, cmd)`) and argparse-based dispatcher
-- **`tasks/context.go`**: `UE4Context` global. `init()` searches for `.uproject` and `cd`s to project root
-- **`uproject/uproject.go`**: `.uproject` JSON parsing. Auto-detects UE4/UE5, resolves engine root, extracts targets
-- **`tasks/build.go`**: UnrealBuildTool invocation. Uses MSBuild.bat for C# projects, Build.bat for native
-- **`tasks/command.go`**: Commandlet execution (`UE4Editor-Cmd.exe` / `UnrealEditor-Cmd.exe`)
+- **`src/command/command.go`**: `Target` interface (`Execute(ctx, cmd)`) and argparse-based dispatcher
+- **`src/tasks/context.go`**: `UE4Context` global. `init()` searches for `.uproject` and `cd`s to project root
+- **`src/uproject/uproject.go`**: `.uproject` JSON parsing. Auto-detects UE4/UE5, resolves engine root, extracts targets
+- **`src/tasks/build.go`**: UnrealBuildTool invocation. Uses MSBuild.bat for C# projects, Build.bat for native
+- **`src/tasks/command.go`**: Commandlet execution (`UE4Editor-Cmd.exe` / `UnrealEditor-Cmd.exe`)
 
 UE4/UE5 is auto-detected in `uproject.go` and each task switches executable names accordingly.
