@@ -2,7 +2,6 @@ package command
 
 import (
 	"context"
-	"io"
 	"os"
 	"os/exec"
 	"strings"
@@ -16,47 +15,20 @@ func New(ctx context.Context) *Context {
 	return &Context{ctx: ctx}
 }
 
-func newExecCmd(command []string) (*exec.Cmd, error) {
+func newExecCmd(ctx context.Context, command []string) *exec.Cmd {
 	println(">>>")
 	println("RUN: " + strings.Join(command, " "))
 	println("<<<")
-	cmd := exec.Command(command[0], command[1:]...)
-
-	stdout, err := cmd.StdoutPipe()
-	if err != nil {
-		return nil, err
-	}
-	go func() {
-		if _, err := io.Copy(os.Stdout, stdout); err != nil {
-			return
-		}
-	}()
-
-	stderr, err := cmd.StderrPipe()
-	if err != nil {
-		return nil, err
-	}
-	go func() {
-		if _, err := io.Copy(os.Stderr, stderr); err != nil {
-			return
-		}
-	}()
-
-	return cmd, nil
+	cmd := exec.CommandContext(ctx, command[0], command[1:]...)
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+	return cmd
 }
 
 func (c *Context) Run(command []string) error {
-	cmd, err := newExecCmd(command)
-	if err != nil {
-		return err
-	}
-	return cmd.Run()
+	return newExecCmd(c.ctx, command).Run()
 }
 
 func (c *Context) Start(command []string) error {
-	cmd, err := newExecCmd(command)
-	if err != nil {
-		return err
-	}
-	return cmd.Start()
+	return newExecCmd(c.ctx, command).Start()
 }

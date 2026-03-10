@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
-	"io"
 	"os"
 	"path/filepath"
 	"strings"
@@ -91,13 +90,11 @@ func uprojectPath() (string, error) {
 func uprojectObj(uprojectPath string) (*UProject, error) {
 	prj := new(UProject)
 
-	f, err := os.Open(uprojectPath)
+	b, err := os.ReadFile(uprojectPath)
 	if err != nil {
 		return nil, err
 	}
-
-	b, _ := io.ReadAll(f)
-	if bytes.Equal(b[:3], []byte{0xef, 0xbb, 0xbf}) {
+	if len(b) >= 3 && bytes.Equal(b[:3], []byte{0xef, 0xbb, 0xbf}) {
 		b = b[3:]
 	}
 
@@ -121,15 +118,17 @@ func uprojectObj(uprojectPath string) (*UProject, error) {
 		}
 		if len(editorpathMatches) > 0 {
 			prj.RootPath = filepath.Dir(editorpathMatches[0])
-			if b, err := os.ReadFile(editorpathMatches[0]); err != nil {
-				prj.EngineRoot = string(b)
+			if b, err := os.ReadFile(editorpathMatches[0]); err == nil {
+				prj.EngineRoot = strings.TrimSpace(string(b))
 			}
 		} else {
 			enginePathMatches, _ := filepath.Glob(filepath.Join(prj.RootPath, "Engine", "Build", "Build.version"))
 			if len(enginePathMatches) == 0 {
 				enginePathMatches, _ = filepath.Glob(filepath.Join(prj.RootPath, "*", "Engine", "Build", "Build.version"))
 			}
-			prj.EngineRoot = filepath.Dir(filepath.Dir(enginePathMatches[0]))
+			if len(enginePathMatches) > 0 {
+				prj.EngineRoot = filepath.Dir(filepath.Dir(enginePathMatches[0]))
+			}
 		}
 		if _, err := os.Stat(prj.EngineRoot); os.IsNotExist(err) {
 			prj.RootPath = prj.ProjectRoot

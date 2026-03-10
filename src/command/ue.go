@@ -29,7 +29,7 @@ func (u *UE) runBuild(command string, target string, platform string, configurat
 	cmdargs := make([]string, 0)
 	cmdargs = append(cmdargs, `C:\Windows\System32\cmd.exe`, "/c")
 	if os.IsNotExist(err) {
-		command := strings.Title(command)
+		command = strings.ToUpper(command[:1]) + command[1:]
 		cmdargs = append(cmdargs,
 			filepath.Join(u.UProject.EngineRoot, "Build", "BatchFiles", command+".bat"),
 			target,
@@ -69,15 +69,6 @@ func (u *UE) Build(command string, target string, platform string, configuration
 		return err
 	}
 	return u.runBuild(command, target, platform, configuration, args...)
-}
-
-func has(str string, arr []string) bool {
-	for _, v := range arr {
-		if v == str {
-			return true
-		}
-	}
-	return false
 }
 
 func (u *UE) Package(target string, platform string, configuration string, isServer bool, args ...string) error {
@@ -132,10 +123,7 @@ func (u *UE) Package(target string, platform string, configuration string, isSer
 	if configuration == "Shipping" {
 		cmdargs = append(cmdargs, "-nodebuginfo")
 	} else {
-		cmdargs = append(cmdargs, "-debuginfo")
-		if has("-cook", cmdargs) {
-			cmdargs = append(cmdargs, "-interactivecooking")
-		}
+		cmdargs = append(cmdargs, "-debuginfo", "-interactivecooking")
 	}
 	return u.ctx.Run(cmdargs)
 }
@@ -178,14 +166,9 @@ func (u *UE) Editor(args ...string) error {
 }
 
 func (u *UE) Command(run string, args ...string) error {
-	cmd := filepath.Join(u.UProject.EngineRoot, "Binaries", "Win64", "UE4Editor-Cmd.exe")
-	if _, err := os.Stat(cmd); err != nil {
-		cmd = filepath.Join(u.UProject.EngineRoot, "Binaries", "Win64", "UnrealEditor-Cmd.exe")
-	}
-
 	cmdargs := make([]string, 0)
 	cmdargs = append(cmdargs,
-		cmd,
+		u.UProject.CmdExe,
 		u.UProject.UProjectPath,
 		"-run="+run)
 	cmdargs = append(cmdargs, args...)
