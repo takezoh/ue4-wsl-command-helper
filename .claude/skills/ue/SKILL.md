@@ -10,17 +10,14 @@ Run Unreal Engine 4/5 build and development commands.
 
 `ue.exe` is a Windows binary. It can be called directly from WSL via interop.
 
-The binary is located at `bin/ue.exe` relative to this SKILL.md.
-Resolve the path from the location of this file.
+The binary is located at `bin/ue.exe` in the repository root.
+When installed via symlink, resolve the symlink to find the repository root.
 
-Example: if this SKILL.md is at `~/.claude/skills/ue/SKILL.md`:
 ```bash
-~/.claude/skills/ue/bin/ue.exe <command> [options]
-```
-
-If project-local (`.claude/skills/ue/SKILL.md`):
-```bash
-.claude/skills/ue/bin/ue.exe <command> [options]
+# Resolve repository root from SKILL.md symlink
+SKILL_DIR="$(dirname "$(readlink -f "${BASH_SOURCE[0]:-$0}")")"
+REPO_ROOT="$(cd "$SKILL_DIR/../../.." && pwd)"
+"$REPO_ROOT/bin/ue.exe" <command> [options]
 ```
 
 ## Commands

@@ -5,7 +5,7 @@ Windows binary (`ue.exe`) for running Unreal Engine 4/5 build and development ta
 ## Build
 
 ```bash
-make        # produces .claude/skills/ue/bin/ue.exe
+make        # produces bin/ue.exe
 ```
 
 ## Commands
@@ -37,7 +37,11 @@ The target name is the filename without the `.Target.cs` extension.
 Install as a Claude Code Skill in any UE project:
 
 ```bash
-mkdir -p .claude/skills && ln -s /path/to/ue4-wsl-command-helper/.claude/skills/ue .claude/skills/ue
+# Skill definition をシンボリックリンクでインストール
+mkdir -p .claude/skills && ln -s /path/to/ue-cli-skill/.claude/skills/ue .claude/skills/ue
+
+# バイナリのビルド（ue-cli-skill リポジトリで実行）
+cd /path/to/ue-cli-skill && make
 ```
 
 ## Architecture

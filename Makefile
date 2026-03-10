@@ -1,2 +1,2 @@
 all:
-	GOOS=windows GOARCH=amd64 go build -o .claude/skills/ue/bin/ue.exe .
+	GOOS=windows GOARCH=amd64 go build -o bin/ue.exe .

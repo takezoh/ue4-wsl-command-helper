@@ -3,7 +3,7 @@
 ## Build
 
 ```bash
-make        # produces .claude/skills/ue/bin/ue.exe
+make        # produces bin/ue.exe
 ```
 
 No test or lint commands defined.
