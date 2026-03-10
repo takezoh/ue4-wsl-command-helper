@@ -37,10 +37,10 @@ The target name is the filename without the `.Target.cs` extension.
 Install as a Claude Code Skill in any UE project:
 
 ```bash
-# Skill をシンボリックリンクでインストール
+# Install skill via symlink
 mkdir -p .claude/skills && ln -s /path/to/ue-cli-skill/skills/ue .claude/skills/ue
 
-# バイナリのビルド（ue-cli-skill リポジトリで実行）
+# Build the binary (run in ue-cli-skill repo)
 cd /path/to/ue-cli-skill && make
 ```
 
