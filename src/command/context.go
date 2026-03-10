@@ -16,9 +16,9 @@ func New(ctx context.Context) *Context {
 }
 
 func newExecCmd(ctx context.Context, command []string) *exec.Cmd {
-	println(">>>")
+	println("========== COMMAND STARTED ==========")
 	println("RUN: " + strings.Join(command, " "))
-	println("<<<")
+	println("=====================================")
 	cmd := exec.CommandContext(ctx, command[0], command[1:]...)
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
@@ -26,7 +26,15 @@ func newExecCmd(ctx context.Context, command []string) *exec.Cmd {
 }
 
 func (c *Context) Run(command []string) error {
-	return newExecCmd(c.ctx, command).Run()
+	err := newExecCmd(c.ctx, command).Run()
+	if err != nil {
+		println("========== COMMAND FAILED ==========")
+		println("ERR: " + err.Error())
+		println("====================================")
+	} else {
+		println("========== COMMAND COMPLETED ==========")
+	}
+	return err
 }
 
 func (c *Context) Start(command []string) error {

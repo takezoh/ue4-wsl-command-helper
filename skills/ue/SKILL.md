@@ -1,89 +1,79 @@
 ---
+description: |
+  Run UE4/UE5 build, package, configure, editor, and commandlet commands.
+  Use when the user asks to build, cook, package, clean, or launch UE projects.
+
+  Subcommands and required parameters:
+    build/clean/rebuild: -t <target> -p <platform> -c <configuration>
+    package: -t <target> -p <platform> -c <configuration> [--server]
+    configure: (no parameters)
+    editor: (no parameters)
+    command: -r <commandlet>
+
+  If the user omits parameters, find targets via `ls Source/*.Target.cs` and infer defaults from context.
+argument-hint: "<subcommand> [options]"
 context: fork
 ---
 
 # UE Build Skill
 
-Run Unreal Engine 4/5 build and development commands.
+Execute `ue.exe` based on `$ARGUMENTS`. Do NOT ask for confirmation or prompt for parameters.
 
-## Usage
+1. Parse `$ARGUMENTS` to determine the subcommand and parameters (CLI flags or natural language)
+2. If required parameters cannot be determined from `$ARGUMENTS`, return the list of missing parameters and their possible values to the main context. Do NOT execute the command
 
-`ue.exe` is a Windows binary. It can be called directly from WSL via interop.
+## How to run
 
-The binary is located at `bin/ue.exe` relative to this SKILL.md.
-Resolve the path from the location of this file.
-
-Example: if this SKILL.md is at `.claude/skills/ue/SKILL.md` (symlinked):
-```bash
-SKILL_DIR="$(dirname "$(readlink -f "$0")")"
-"$SKILL_DIR/bin/ue.exe" <command> [options]
-```
-
-## Commands
+The binary is at `bin/ue.exe` relative to this SKILL.md. Resolve and execute:
 
 ```bash
-# Build
-ue.exe build -t <target> -p <platform> -c <configuration>
-ue.exe clean -t <target> -p <platform> -c <configuration>
-ue.exe rebuild -t <target> -p <platform> -c <configuration>
-
-# Package
-ue.exe package -t <target> -p <platform> -c <configuration> [--server]
-
-# Generate project files
-ue.exe configure
-
-# Launch editor
-ue.exe editor
-
-# Run commandlet
-ue.exe command -r <commandlet>
+"$(dirname "$(readlink -f /path/to/SKILL.md)")/bin/ue.exe" <subcommand> [options]
 ```
 
-## Arguments
-
-### Finding targets
-
-```bash
-ls Source/*.Target.cs
-```
-
-The target name is the filename without the `.Target.cs` extension.
-
-### platform
-
-`Win64`, `Android`, `Linux`, `PS4`, `PS5`
-
-### configuration
-
-`Development`, `Test`, `Shipping`
-
-### Extra options
-
-`-A` / `--opt` passes additional arguments directly to UE tools.
-
-## Environment variables
-
-- `TARGET_DIR`: Explicitly specify the project directory (defaults to auto-detecting `.uproject` from cwd)
+Resolve `/path/to/SKILL.md` to the actual path of this file.
 
 ## Execution strategy
 
-Builds can take tens of minutes. To avoid blocking the main context:
+Builds can take tens of minutes. Use `run_in_background`:
 
-1. Generate a unique log file path: `/tmp/ue-build-<pid>.log`
-2. Launch the build in the background:
-   ```bash
-   ue.exe build -t MyGame -p Win64 -c Development > /tmp/ue-build-$$.log 2>&1 &
-   echo "PID=$! LOG=/tmp/ue-build-$$.log"
-   ```
-3. Return immediately to the main context with:
-   - The exact command that was launched
-   - The PID and log file path
-   - How to check status: `kill -0 <pid> 2>/dev/null && echo running || echo done` and `tail -50 <log>`
+```bash
+ue.exe build -t MyGame -p Win64 -c Development 2>&1 | tee /tmp/ue-build-$$.log
+```
 
-## Reporting results
+## Output markers
 
-This skill runs in a forked context. You MUST return a clear result message to the parent context:
+### ue.exe markers
 
-- **For long-running commands** (build, clean, rebuild, package): Launch in background and return the PID + log path immediately
-- **For quick commands** (configure, editor, command): Run directly and report success/failure with exit code and last 50 lines of output on error
+```
+========== COMMAND STARTED ==========
+RUN: <command line>
+=====================================
+... output ...
+========== COMMAND COMPLETED ==========
+```
+
+Failure:
+```
+========== COMMAND FAILED ==========
+ERR: <error message>
+====================================
+```
+
+### UE package stages
+
+`package` runs: `BUILD -> COOK -> STAGE -> PACKAGE -> ARCHIVE`
+
+```
+********** BUILD COMMAND COMPLETED **********
+********** COOK COMMAND STARTED **********
+```
+
+Use both marker types to pinpoint where a failure occurred.
+
+## Reporting results to main context
+
+This skill runs in a forked context. You MUST return a clear result message to the parent:
+
+- **Success**: Report the command executed and that it completed successfully
+- **Failure**: Report the command executed, the failed stage (for package: BUILD/COOK/STAGE/PACKAGE/ARCHIVE), and the relevant error lines from the output
+- **Insufficient parameters**: Do NOT guess or prompt interactively. Return the list of missing parameters and their possible values to the main context so the user can clarify
