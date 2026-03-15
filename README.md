@@ -1,6 +1,6 @@
 # ue-cli-skill
 
-Windows binary (`ue.exe`) for running Unreal Engine 4/5 build and development tasks. Auto-detects `.uproject` to initialize project context and invokes Windows batch scripts. Can be called directly from WSL via interop.
+Automate Unreal Engine 4/5 build, package, and editor tasks from the command line and as a Claude Code skill.
 
 ## Build
 
