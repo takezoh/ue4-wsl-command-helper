@@ -1,6 +1,6 @@
 # ue-cli-skill
 
-Automate Unreal Engine 4/5 build, package, and editor tasks from the command line and as a Claude Code skill.
+Automate Unreal Engine 4/5 build, package, and editor tasks from the command line and as a Claude Code skill. Works on Windows and WSL via interop.
 
 ## Build
 
