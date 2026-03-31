@@ -12,7 +12,6 @@ description: |
 
   If the user omits parameters, find targets via `ls Source/*.Target.cs` and infer defaults from context.
 argument-hint: "<subcommand> [options]"
-context: fork
 ---
 
 # UE Build Skill
