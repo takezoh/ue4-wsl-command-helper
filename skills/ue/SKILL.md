@@ -26,13 +26,15 @@ Execute `ue.exe` based on `$ARGUMENTS`. Do NOT ask for confirmation or prompt fo
 The binary is at `bin/ue.exe` relative to this SKILL.md. Resolve and execute:
 
 ```bash
-/path/to/skill/bin/ue.exe" <subcommand> [options]
+/path/to/skill/bin/ue.exe <subcommand> [options]
+```
 
 ## Execution strategy
 
 Builds can take tens of minutes. Use `run_in_background`:
 
 ```bash
+set -o pipefail
 ue.exe build -t MyGame -p Win64 -c Development 2>&1 | tee /tmp/ue-build-$$.log
 ```
 
