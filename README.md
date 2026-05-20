@@ -5,7 +5,7 @@ Automate Unreal Engine 4/5 build, package, and editor tasks from the command lin
 ## Build
 
 ```bash
-make        # produces skills/ue/bin/ue.exe
+make        # produces skills/ue/bin/ue.exe and skills/ue/bin/ue-skill.exe
 ```
 
 ## Commands
@@ -31,6 +31,23 @@ ls Source/*.Target.cs
 ```
 
 The target name is the filename without the `.Target.cs` extension.
+
+## ue-skill.exe (for Claude Code Skill)
+
+`ue-skill.exe` is the SKILL-dedicated variant. It accepts the same arguments as
+`ue.exe` but additionally:
+
+- Tees all stdout/stderr to a temp log file
+- Prints `LOG_FILE: <path>` as the first line of stdout
+- Propagates the child process exit code unchanged (no shell pipe needed)
+
+```bash
+ue-skill.exe build -t MyGame -p Win64 -c Development
+# → LOG_FILE: /tmp/ue-build-12345.log
+# exit code reflects UBT result directly
+```
+
+Use `ue.exe` for interactive CLI use and `ue-skill.exe` from within a Claude Code Skill.
 
 ## Claude Code Skill
 
