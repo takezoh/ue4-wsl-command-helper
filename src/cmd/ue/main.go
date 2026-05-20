@@ -1,15 +1,16 @@
 package main
 
 import (
+	"context"
+	"os"
+
 	"github.com/takezoh/ue-cli-skill/command"
 	"github.com/takezoh/ue-cli-skill/tasks"
 	"github.com/takezoh/ue-cli-skill/uproject"
-	"context"
-	"os"
 )
 
 func main() {
-	ctx := command.New(context.Background())
+	ctx := command.New(context.Background(), os.Stdout, os.Stderr)
 
 	uprj, err := uproject.GetUProject()
 	if err != nil {

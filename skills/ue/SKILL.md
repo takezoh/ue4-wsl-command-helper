@@ -31,16 +31,22 @@ The binary is at `bin/ue.exe` relative to this SKILL.md. Resolve and execute:
 
 ## Execution strategy
 
-Builds can take tens of minutes. Use `run_in_background`:
+Run `ue-skill.exe` (located next to `ue.exe`). It tees all output to a temp log file
+and prints the path on stdout before any other output.
 
 ```bash
-set -o pipefail
-ue.exe build -t MyGame -p Win64 -c Development 2>&1 | tee /tmp/ue-build-$$.log
+/path/to/skill/bin/ue-skill.exe build -t MyGame -p Win64 -c Development
 ```
 
-## Output markers
+Builds can take tens of minutes — use `run_in_background: true` for `build` and `package`.
 
-### ue.exe markers
+## Detecting success / failure
+
+1. **Exit code is authoritative.** Non-zero = failure (`ue-skill.exe` propagates the child process exit code unchanged).
+2. **Find the log.** The first line of stdout is `LOG_FILE: <path>`. Open that file for the full output.
+3. **Locate the failed stage** (package only): grep the log for `********** <STAGE> COMMAND COMPLETED **********` markers to determine which of `BUILD / COOK / STAGE / PACKAGE / ARCHIVE` failed.
+
+## Output markers (in the log file)
 
 ```
 ========== COMMAND STARTED ==========
@@ -65,8 +71,6 @@ ERR: <error message>
 ********** BUILD COMMAND COMPLETED **********
 ********** COOK COMMAND STARTED **********
 ```
-
-Use both marker types to pinpoint where a failure occurred.
 
 ## Reporting results to main context
 

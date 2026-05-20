@@ -2,41 +2,44 @@ package command
 
 import (
 	"context"
-	"os"
+	"fmt"
+	"io"
 	"os/exec"
 	"strings"
 )
 
 type Context struct {
-	ctx context.Context
+	ctx    context.Context
+	Stdout io.Writer
+	Stderr io.Writer
 }
 
-func New(ctx context.Context) *Context {
-	return &Context{ctx: ctx}
+func New(ctx context.Context, stdout, stderr io.Writer) *Context {
+	return &Context{ctx: ctx, Stdout: stdout, Stderr: stderr}
 }
 
-func newExecCmd(ctx context.Context, command []string) *exec.Cmd {
-	println("========== COMMAND STARTED ==========")
-	println("RUN: " + strings.Join(command, " "))
-	println("=====================================")
-	cmd := exec.CommandContext(ctx, command[0], command[1:]...)
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
+func (c *Context) newExecCmd(command []string) *exec.Cmd {
+	fmt.Fprintln(c.Stderr, "========== COMMAND STARTED ==========")
+	fmt.Fprintln(c.Stderr, "RUN: "+strings.Join(command, " "))
+	fmt.Fprintln(c.Stderr, "=====================================")
+	cmd := exec.CommandContext(c.ctx, command[0], command[1:]...)
+	cmd.Stdout = c.Stdout
+	cmd.Stderr = c.Stderr
 	return cmd
 }
 
 func (c *Context) Run(command []string) error {
-	err := newExecCmd(c.ctx, command).Run()
+	err := c.newExecCmd(command).Run()
 	if err != nil {
-		println("========== COMMAND FAILED ==========")
-		println("ERR: " + err.Error())
-		println("====================================")
+		fmt.Fprintln(c.Stderr, "========== COMMAND FAILED ==========")
+		fmt.Fprintln(c.Stderr, "ERR: "+err.Error())
+		fmt.Fprintln(c.Stderr, "====================================")
 	} else {
-		println("========== COMMAND COMPLETED ==========")
+		fmt.Fprintln(c.Stderr, "========== COMMAND COMPLETED ==========")
 	}
 	return err
 }
 
 func (c *Context) Start(command []string) error {
-	return newExecCmd(c.ctx, command).Start()
+	return c.newExecCmd(command).Start()
 }
